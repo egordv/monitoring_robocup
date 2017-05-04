@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<package>
+  <name>MonitoringRoboCup</name>
+  <version>0.0.0</version>
+  <description>
+    UDP viewer for RhobanServer
+  </description>
+
+  <maintainer email="qrouxel@labri.fr">Quentin Rouxel</maintainer>
+
+  <license>MIT</license>
+
+  <author email="qrouxel@labri.fr">Quentin Rouxel</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>RhobanUtils</build_depend> <!-- rhobanproject/rhobanutils -->
+  <build_depend>Eigen</build_depend> <!-- rhobandeps/eigen -->
+  <build_depend>RhobanServer</build_depend> <!-- rhobanproject/code -->
+  <run_depend>RhobanUtils</run_depend>
+  <run_depend>Eigen</run_depend>
+  <run_depend>RhobanServer</run_depend>
+
+</package>
+
