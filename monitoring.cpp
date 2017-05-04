@@ -49,7 +49,7 @@ void drawField(
 {
     double fieldWidth = 9.0;
     double fieldHeight = 6.0;
-    double goalWidth = 1.80;
+    double goalWidth = 2.60;
     double goalDepth = 0.60;
     double goalAreaDepth = 1.0;
     double goalAreaWidth = 5.0;
@@ -220,11 +220,10 @@ bool loadReplayLine(std::ifstream& replay,
         double fieldY;
         double fieldYaw;
         double fieldQ;
-        double fieldConsistency;
-        double timeSinceLastFieldReset;
         double timestamp;
+        std::string stateReferee = "";
         std::string stateRobocup = "";
-        std::string stateApproach = "";
+        std::string statePlaying = "";
         std::string stateSearch = "";
         std::string stateLowlevel = "";
         replay >> id;
@@ -237,9 +236,18 @@ bool loadReplayLine(std::ifstream& replay,
         replay >> fieldY;
         replay >> fieldYaw;
         replay >> fieldQ;
-        replay >> fieldConsistency;
-        replay >> timeSinceLastFieldReset;
         replay >> timestamp;
+        while (true) {
+            char c;
+            replay >> c;
+            if (c == '$') break;
+            if (c == EOF || !replay.good()) return false;
+            stateReferee += c;
+        }
+        replay.ignore();
+        while (replay.peek() == ' ' && replay.peek() != EOF) {
+            replay.ignore();
+        }
         while (true) {
             char c;
             replay >> c;
@@ -256,7 +264,7 @@ bool loadReplayLine(std::ifstream& replay,
             replay >> c;
             if (c == '$') break;
             if (c == EOF || !replay.good()) return false;
-            stateApproach += c;
+            statePlaying += c;
         }
         replay.ignore();
         while (replay.peek() == ' ' && replay.peek() != EOF) {
@@ -295,11 +303,10 @@ bool loadReplayLine(std::ifstream& replay,
         info.fieldY = fieldY;
         info.fieldYaw = fieldYaw;
         info.fieldQ = fieldQ;
-        info.fieldConsistency = fieldConsistency;
-        info.timeSinceLastFieldReset = timeSinceLastFieldReset;
         info.timestamp = timestamp;
+        strcpy(info.stateReferee, stateReferee.c_str());
         strcpy(info.stateRobocup, stateRobocup.c_str());
-        strcpy(info.stateApproach, stateApproach.c_str());
+        strcpy(info.statePlaying, statePlaying.c_str());
         strcpy(info.stateSearch, stateSearch.c_str());
         strcpy(info.stateLowlevel, stateLowlevel.c_str());
         allInfo[id] = info;
@@ -390,7 +397,9 @@ int main(int argc, char** argv)
                 }
                 info.timestamp = TimeStamp::now().getTimeMS();
                 allInfo[info.id] = info;
-                std::cout << "Receiving data from id=" << info.id << std::endl;
+                std::cout << "Receiving data from id=" 
+                    << info.id << " ts=" 
+                    << std::setprecision(10) << info.timestamp << std::endl;
                 isUpdate = true;
             }
         } else {
@@ -456,11 +465,10 @@ int main(int argc, char** argv)
                     << std::setprecision(10) << info.fieldY << " "
                     << std::setprecision(10) << info.fieldYaw << " "
                     << std::setprecision(10) << info.fieldQ << " "
-                    << std::setprecision(10) << info.fieldConsistency << " "
-                    << std::setprecision(10) << info.timeSinceLastFieldReset << " "
                     << std::setprecision(10) << info.timestamp << " "
+                    << info.stateReferee << "$ "
                     << info.stateRobocup << "$ "
-                    << info.stateApproach << "$ "
+                    << info.statePlaying << "$ "
                     << info.stateSearch << "$ "
                     << info.stateLowlevel << "$ " << std::endl;
             }
@@ -516,8 +524,9 @@ int main(int argc, char** argv)
                 ssRobot << "Hight";
             }
             ssRobot << std::endl;
+            ssRobot << "Referee: " << info.stateReferee << std::endl;
             ssRobot << "RoboCup: " << info.stateRobocup << std::endl;
-            ssRobot << "Approach: " << info.stateApproach << std::endl;
+            ssRobot << "Playing: " << info.statePlaying << std::endl;
             ssRobot << "Search: " << info.stateSearch << std::endl;
             ssRobot << "LowLevel: ";
             if (info.stateLowlevel[0] != '\0') {
@@ -526,10 +535,6 @@ int main(int argc, char** argv)
             ssRobot << info.stateLowlevel << std::endl;
             ssRobot << "FieldQ: " << std::fixed << std::setprecision(2) 
                 << info.fieldQ << std::endl;
-            ssRobot << "FieldConsistency: " << std::fixed << std::setprecision(2) 
-                << info.fieldConsistency << std::endl;
-            ssRobot << "timeSinceLastFieldReset: " << std::fixed << std::setprecision(2) 
-                << info.timeSinceLastFieldReset << "s" << std::endl;
             double age;
             if (!isReplay) {
                 age = (TimeStamp::now().getTimeMS() - info.timestamp)/1000.0;
