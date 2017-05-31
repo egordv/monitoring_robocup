@@ -4,6 +4,8 @@
 #include <sstream>
 #include <iomanip>
 #include <fstream>
+#include <thread>
+#include <chrono>
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 #include <Eigen/Dense>
@@ -344,10 +346,31 @@ int main(int argc, char** argv)
     std::map<int, TeamPlayInfo> allInfo;
 
     //Load replay
-    std::ifstream replay;
+    std::vector<std::map<int, TeamPlayInfo>> replayContainerInfo;
+    std::vector<double> replayContainerTime;
     if (isReplay) {
-        replay.open(replayFilename);
+        std::ifstream replayFile;
+        replayFile.open(replayFilename);
+        while (true) {
+            std::map<int, TeamPlayInfo> tmpInfo;
+            double tmpTime;
+            bool isOk = loadReplayLine(
+                replayFile, tmpInfo, &tmpTime);
+            //End of replay
+            if (!isOk) {
+                break;
+            } else {
+                replayContainerInfo.push_back(tmpInfo);
+                replayContainerTime.push_back(tmpTime);
+            }
+        }
+        replayFile.close();
     }
+
+    //Replay user control
+    size_t replayIndex = 0;
+    bool replayIsPaused = false;
+    double replaySpeed = 0.0;
         
     //SFML Window initialization
     const int width = 1600;
@@ -397,16 +420,20 @@ int main(int argc, char** argv)
                 }
                 info.timestamp = TimeStamp::now().getTimeMS();
                 allInfo[info.id] = info;
+                double replaySpeed = 0.0;
                 std::cout << "Receiving data from id=" 
                     << info.id << " ts=" 
                     << std::setprecision(10) << info.timestamp << std::endl;
                 isUpdate = true;
             }
         } else {
-            bool isOk = loadReplayLine(replay, allInfo, &replayTime);
-            //Check end if replay
-            if (isOk && startReplayTime < 0.0) {
-                startReplayTime = replayTime;
+            if (!replayIsPaused && replayIndex < replayContainerInfo.size()) {
+                allInfo = replayContainerInfo[replayIndex];
+                replayTime = replayContainerTime[replayIndex];
+                if (startReplayTime < 0.0) {
+                    startReplayTime = replayTime;
+                }
+                replayIndex++;
             }
         }
         //Handle events
@@ -430,6 +457,14 @@ int main(int argc, char** argv)
                 isInverted = -isInverted;
             }
         } 
+        //Replay user control
+        if (isReplay) {
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::P)) {
+                replayIsPaused = !replayIsPaused;
+                std::this_thread::sleep_for(
+                    std::chrono::milliseconds(400));
+            }
+        }
         //Start rendering
         window.clear();
         //Set camera view
@@ -572,9 +607,6 @@ int main(int argc, char** argv)
     if (!isReplay) {
         std::cout << "Writing log to " << logFilename << std::endl;
         log.close();
-    }
-    if (isReplay) {
-        replay.close();
     }
 
     return 0;
