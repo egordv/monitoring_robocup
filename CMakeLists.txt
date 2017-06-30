@@ -3,12 +3,12 @@ project(MonitoringRoboCup)
 
 find_package(
     catkin REQUIRED COMPONENTS
-    RhobanUtils Eigen RhobanServer
+    RhobanUtils Eigen RhobanServer RobocupReferee
 )
 
 catkin_package(
     INCLUDE_DIRS .
-    CATKIN_DEPENDS RhobanUtils
+    CATKIN_DEPENDS RhobanUtils RobocupReferee
 )
 
 include_directories(${catkin_INCLUDE_DIRS})

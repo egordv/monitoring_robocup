@@ -16,7 +16,10 @@
   <build_depend>RhobanUtils</build_depend> <!-- rhobanproject/rhobanutils -->
   <build_depend>Eigen</build_depend> <!-- rhobandeps/eigen -->
   <build_depend>RhobanServer</build_depend> <!-- rhobanproject/code -->
+  <build_depend>RobocupReferee</build_depend> <!-- rhoban/robocupreferee -->
+
   <run_depend>RhobanUtils</run_depend>
+  <run_depend>RobocupReferee</run_depend>
   <run_depend>Eigen</run_depend>
   <run_depend>RhobanServer</run_depend>
 

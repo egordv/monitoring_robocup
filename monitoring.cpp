@@ -9,6 +9,7 @@
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 #include <Eigen/Dense>
+#include <Constants.h>
 #include "timing/TimeStamp.hpp"
 #include "sockets/UDPBroadcast.hpp"
 #include "services/TeamPlayService.h"
@@ -49,12 +50,13 @@ void drawLine(
 void drawField(
     sf::RenderWindow& window)
 {
-    double fieldWidth = 9.0;
-    double fieldHeight = 6.0;
-    double goalWidth = 2.60;
+    double fieldWidth = RhobanReferee::Constants::fieldLength/100.0;
+    double fieldHeight = RhobanReferee::Constants::fieldWidth/100;
+    double goalWidth = RhobanReferee::Constants::goalWidth/100.0;
     double goalDepth = 0.60;
-    double goalAreaDepth = 1.0;
-    double goalAreaWidth = 5.0;
+    double goalAreaDepth = RhobanReferee::Constants::goalAreaLength/100.0;
+    double goalAreaWidth = RhobanReferee::Constants::goalAreaWidth/100.0;
+
     drawLine(window, sf::Vector2f(-fieldWidth/2, -fieldHeight/2), sf::Vector2f(fieldWidth/2, -fieldHeight/2));
     drawLine(window, sf::Vector2f(-fieldWidth/2, fieldHeight/2), sf::Vector2f(fieldWidth/2, fieldHeight/2));
     drawLine(window, sf::Vector2f(-fieldWidth/2, fieldHeight/2), sf::Vector2f(-fieldWidth/2, -fieldHeight/2));
