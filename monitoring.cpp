@@ -327,8 +327,8 @@ int main(int argc, char** argv)
     int port = 27645;
     //Parse arguments for log replays
     bool isReplay = false;
-    double replayTime;
-    double startReplayTime = -1.0;
+    double replayTime, replayTargetTime;
+    double startReplayTime, endReplayTime;
     std::string replayFilename;
     if (argc == 1) {
         std::cout << "Starting UDP listening on " << port << std::endl;
@@ -372,6 +372,8 @@ int main(int argc, char** argv)
     //Replay user control
     size_t replayIndex = 0;
     bool replayIsPaused = false;
+    bool replayFast = false;
+    bool replayBackward = false;
     double replaySpeed = 0.0;
         
     //SFML Window initialization
@@ -405,6 +407,10 @@ int main(int argc, char** argv)
     if (!isReplay) {
         std::cout << "Writing log to " << logFilename << std::endl;
         log.open(logFilename);
+    } else {
+        startReplayTime = replayContainerTime[0];
+        endReplayTime = replayContainerTime[replayContainerTime.size()-1];
+        replayTime = replayTargetTime = startReplayTime;
     }
 
     //Main loop
@@ -430,13 +436,33 @@ int main(int argc, char** argv)
             }
         } else {
             if (!replayIsPaused && replayIndex < replayContainerInfo.size()) {
-                allInfo = replayContainerInfo[replayIndex];
-                replayTime = replayContainerTime[replayIndex];
-                if (startReplayTime < 0.0) {
-                    startReplayTime = replayTime;
+                double sign = 1;
+                if (replayBackward) {
+                    sign = -1;
                 }
-                replayIndex++;
+
+                if (replayFast) {
+                    replayTargetTime += sign*200;
+                } else {
+                    replayTargetTime += sign*50;
+                }
+                if (replayTargetTime < startReplayTime) replayTargetTime = startReplayTime;
+                if (replayTargetTime > endReplayTime) replayTargetTime = endReplayTime;
+
+                while (replayTime < replayTargetTime && replayIndex < replayContainerTime.size()) {
+                    allInfo = replayContainerInfo[replayIndex];
+                    replayTime = replayContainerTime[replayIndex];
+                    replayIndex++;
+                }
+                while (replayTime > replayTargetTime && replayIndex > 0) {
+                    allInfo = replayContainerInfo[replayIndex];
+                    replayTime = replayContainerTime[replayIndex];
+                    replayIndex--;
+                }
             }
+            
+            std::this_thread::sleep_for(
+                std::chrono::milliseconds(50));
         }
         //Handle events
         sf::Event event;
@@ -466,6 +492,8 @@ int main(int argc, char** argv)
                 std::this_thread::sleep_for(
                     std::chrono::milliseconds(400));
             }
+            replayFast = sf::Keyboard::isKeyPressed(sf::Keyboard::F);
+            replayBackward = sf::Keyboard::isKeyPressed(sf::Keyboard::B);
         }
         //Start rendering
         window.clear();
