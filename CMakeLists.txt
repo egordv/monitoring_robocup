@@ -11,6 +11,12 @@ catkin_package(
     CATKIN_DEPENDS RhobanUtils RobocupReferee
 )
 
+#Camera options
+option (USE_CAMERA "Use external camera" ON)
+
+#Camera to use (index in /dev/videoX)
+set (CAMERA "1" CACHE STRING "Camera to use")
+
 include_directories(${catkin_INCLUDE_DIRS})
 
 #Enable C++11
@@ -20,6 +26,18 @@ set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 set(CMAKE_CXX_FLAGS
     "${CMAKE_CXX_FLAGS} -Wall -Wpedantic")
 
+set (LIBRARIES ${catkin_LIBRARIES})
+
+if (USE_CAMERA)
+    find_package(OpenCV REQUIRED)
+    include_directories(${OpenCV_DIR}/include)
+    include_directories(${OpenCV_DIR}/include/opencv2)
+    set (LIBRARIES ${LIBRARIES} ${OpenCV_LIBS})
+
+    add_definitions (-DUSE_CAMERA)
+    add_definitions (-DCAMERA=${CAMERA})
+endif ()
+
 #Include SFML (graphic library)
 set(SFML_DIRECTORY "SFML" CACHE STRING "SFML lib directory")
 include_directories(${SFML_DIRECTORY}/include)
@@ -28,7 +46,7 @@ add_executable(MonitoringRoboCup
     monitoring.cpp
 )
 target_link_libraries(MonitoringRoboCup
-    ${catkin_LIBRARIES}
+    ${LIBRARIES}
     pthread
     sfml-graphics
     sfml-window

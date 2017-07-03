@@ -14,8 +14,14 @@
 #include "sockets/UDPBroadcast.hpp"
 #include "services/TeamPlayService.h"
 #include "RefereeClient.hpp"
+#ifdef USE_CAMERA
+#include <opencv2/opencv.hpp>
+
+using namespace cv;
+#endif
 
 using namespace Utils::Timing;
+static bool stopped = false;
 
 /**
  * Draw between given point a RoboCup line
@@ -199,7 +205,8 @@ void drawPlayer(
  */
 bool loadReplayLine(std::ifstream& replay, 
     std::map<int, TeamPlayInfo>& allInfo,
-    double* replayTime = nullptr)
+    double* replayTime = nullptr,
+    size_t* framePtr = nullptr)
 {
     while (replay.peek() == ' ' || replay.peek() == '\n') {
         replay.ignore();
@@ -210,8 +217,10 @@ bool loadReplayLine(std::ifstream& replay,
     }
     //Load one replay line
     double ts;
+    size_t frame;
     int size;
     replay >> ts;
+    replay >> frame;
     replay >> size;
     for (size_t i=0;i<(size_t)size;i++) {
         int id;
@@ -318,8 +327,62 @@ bool loadReplayLine(std::ifstream& replay,
     if (replayTime != nullptr) {
         *replayTime = ts;
     }
+    if (framePtr != nullptr) {
+        *framePtr = frame;
+    }
     return true;
 }
+
+size_t currentFrame = 0;
+
+#ifdef USE_CAMERA
+size_t lastFrame = 0;
+bool hasNewFrame = false;
+std::mutex frameMutex;
+
+void captureThread()
+{
+    size_t n = 0;
+    std::cout << "Capturing on camera #" << CAMERA << std::endl;
+    VideoCapture cap(CAMERA);
+
+    while (!stopped) {
+        n++;
+        Mat frame;
+        cap >> frame;
+
+        lastFrame = n;
+        std::stringstream ss;
+        ss << "frame_" << n << ".jpeg";
+        imwrite(ss.str(), frame);
+        
+        frameMutex.lock();
+        hasNewFrame = true;
+        frameMutex.unlock();
+    }
+}
+
+void showThread()
+{
+    size_t frame;
+    namedWindow("Frames", 1);
+
+    while (!stopped) {
+        if (currentFrame && frame != currentFrame) {
+            frame = currentFrame;
+            std::stringstream ss;
+            ss << "frame_" << frame << ".jpeg";
+            try {
+                auto img = imread(ss.str());
+                imshow("Frames", img);
+            } catch (cv::Exception) {
+                std::cerr << "Can't read " << ss.str() << std::endl;
+            }
+        }
+        waitKey(30);
+    }
+}
+#endif
 
 int main(int argc, char** argv)
 {
@@ -346,9 +409,12 @@ int main(int argc, char** argv)
     //Initialize UDP communication in read only
     Rhoban::UDPBroadcast broadcaster(port, -1);
     std::map<int, TeamPlayInfo> allInfo;
+    std::thread *capture = NULL;
+    std::thread *show = NULL;
 
     //Load replay
     std::vector<std::map<int, TeamPlayInfo>> replayContainerInfo;
+    std::vector<size_t> replayContainerFrame;
     std::vector<double> replayContainerTime;
     if (isReplay) {
         std::ifstream replayFile;
@@ -356,18 +422,29 @@ int main(int argc, char** argv)
         while (true) {
             std::map<int, TeamPlayInfo> tmpInfo;
             double tmpTime;
+            size_t tmpFrame;
             bool isOk = loadReplayLine(
-                replayFile, tmpInfo, &tmpTime);
+                replayFile, tmpInfo, &tmpTime, &tmpFrame);
             //End of replay
             if (!isOk) {
                 break;
             } else {
                 replayContainerInfo.push_back(tmpInfo);
                 replayContainerTime.push_back(tmpTime);
+                replayContainerFrame.push_back(tmpFrame);
             }
         }
         replayFile.close();
+    } else {
+#ifdef USE_CAMERA
+        // Running the capture thread
+        capture = new std::thread(captureThread);
+#endif
     }
+        
+#ifdef USE_CAMERA
+    show = new std::thread(showThread);
+#endif
 
     //Replay user control
     size_t replayIndex = 0;
@@ -434,6 +511,16 @@ int main(int argc, char** argv)
                     << std::setprecision(10) << info.timestamp << std::endl;
                 isUpdate = true;
             }
+           
+#ifdef USE_CAMERA
+            frameMutex.lock();
+            if (hasNewFrame) {
+                currentFrame = lastFrame;
+                hasNewFrame = false;
+                isUpdate = true;
+            }
+            frameMutex.unlock();
+#endif
         } else {
             if (!replayIsPaused && replayIndex < replayContainerInfo.size()) {
                 double sign = 1;
@@ -452,11 +539,13 @@ int main(int argc, char** argv)
                 while (replayTime < replayTargetTime && replayIndex < replayContainerTime.size()) {
                     allInfo = replayContainerInfo[replayIndex];
                     replayTime = replayContainerTime[replayIndex];
+                    currentFrame = replayContainerFrame[replayIndex];
                     replayIndex++;
                 }
                 while (replayTime > replayTargetTime && replayIndex > 0) {
                     allInfo = replayContainerInfo[replayIndex];
                     replayTime = replayContainerTime[replayIndex];
+                    currentFrame = replayContainerFrame[replayIndex];
                     replayIndex--;
                 }
             }
@@ -510,7 +599,7 @@ int main(int argc, char** argv)
         drawField(window);
         //Logging
         if (!isReplay && isUpdate) {
-            log << std::setprecision(10) << TimeStamp::now().getTimeMS() << " ";
+            log << std::setprecision(10) << TimeStamp::now().getTimeMS() << " " << currentFrame << " ";
             log << allInfo.size() << " ";
         }
         //Draw players info
@@ -646,9 +735,19 @@ int main(int argc, char** argv)
 
         window.display();
     }
+
+    stopped = true;
+
     if (!isReplay) {
         std::cout << "Writing log to " << logFilename << std::endl;
         log.close();
+    }
+    
+    if (capture != NULL) {
+        capture->join();
+    }
+    if (show != NULL) {
+        show->join();
     }
 
     return 0;
