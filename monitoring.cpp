@@ -549,11 +549,17 @@ int main(int argc, char** argv)
             if (info.state == BallHandling) {
                 ssRobot << "BallHandling";
             }
-            if (info.state == PlacingAttack) {
-                ssRobot << "PlacingAttack";
+            if (info.state == PlacingA) {
+                ssRobot << "Placing (A)";
             }
-            if (info.state == PlacingDefend) {
-                ssRobot << "PlacingDefend";
+            if (info.state == PlacingB) {
+                ssRobot << "Placing (B)";
+            }
+            if (info.state == PlacingC) {
+                ssRobot << "Placing (C)";
+            }
+            if (info.state == PlacingD) {
+                ssRobot << "Placing (D)";
             }
             ssRobot << std::endl;
             ssRobot << "Priority: ";
