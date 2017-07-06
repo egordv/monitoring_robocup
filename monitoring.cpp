@@ -345,20 +345,26 @@ void captureThread()
     size_t n = 0;
     std::cout << "Capturing on camera #" << CAMERA << std::endl;
     VideoCapture cap(CAMERA);
+    auto last = TimeStamp::now();
 
     while (!stopped) {
         n++;
         Mat frame;
         cap >> frame;
+    
+        auto frameTs = TimeStamp::now();
 
-        lastFrame = n;
-        std::stringstream ss;
-        ss << "frame_" << n << ".jpeg";
-        imwrite(ss.str(), frame);
-        
-        frameMutex.lock();
-        hasNewFrame = true;
-        frameMutex.unlock();
+        if (frameTs.getTimeMS() - last.getTimeMS() > 150) {
+            last = frameTs;
+            lastFrame = n;
+            std::stringstream ss;
+            ss << "frame_" << n << ".jpeg";
+            imwrite(ss.str(), frame);
+            
+            frameMutex.lock();
+            hasNewFrame = true;
+            frameMutex.unlock();
+        }
     }
 }
 
@@ -450,6 +456,7 @@ int main(int argc, char** argv)
     size_t replayIndex = 0;
     bool replayIsPaused = false;
     bool replayFast = false;
+    bool replaySuperFast = false;
     bool replayBackward = false;
     double replaySpeed = 0.0;
         
@@ -528,7 +535,9 @@ int main(int argc, char** argv)
                     sign = -1;
                 }
 
-                if (replayFast) {
+                if (replaySuperFast) {
+                    replayTargetTime += sign*1000;
+                } else if (replayFast) {
                     replayTargetTime += sign*200;
                 } else {
                     replayTargetTime += sign*50;
@@ -582,6 +591,7 @@ int main(int argc, char** argv)
                     std::chrono::milliseconds(400));
             }
             replayFast = sf::Keyboard::isKeyPressed(sf::Keyboard::F);
+            replaySuperFast = sf::Keyboard::isKeyPressed(sf::Keyboard::S);
             replayBackward = sf::Keyboard::isKeyPressed(sf::Keyboard::B);
         }
         //Start rendering
