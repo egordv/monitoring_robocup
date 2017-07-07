@@ -1,5 +1,3 @@
-#undef USE_CAMERA
-
 #include <iostream>
 #include <cmath>
 #include <string>
