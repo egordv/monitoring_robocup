@@ -1,3 +1,5 @@
+#undef USE_CAMERA
+
 #include <iostream>
 #include <cmath>
 #include <string>
@@ -166,6 +168,63 @@ void drawBall(
     window.draw(circle2);
 }
 
+void drawAnyLine(
+    sf::RenderWindow& window,
+    const sf::Vector2f& from,
+    const sf::Vector2f& to,
+    int id,
+    double thickness = 0.02
+    )
+{
+    auto diff = to-from;
+    auto yaw = atan2(diff.y, diff.x);
+    auto dist = sqrt(diff.x*diff.x + diff.y*diff.y);
+
+    sf::RectangleShape shape1(sf::Vector2f(dist, thickness));
+    shape1.setOrigin(0, thickness/2);
+    shape1.rotate(-yaw*180/M_PI);
+    shape1.move(sf::Vector2f(from.x, -from.y));
+    shape1.setFillColor(getColor(id));
+    window.draw(shape1);
+}
+
+/**
+ * Draws the ball arrow to its target
+ */
+void drawBallArrow(
+    sf::RenderWindow& window,
+    const sf::Vector2f& pos,
+    const sf::Vector2f& target,
+    int id)
+{
+    auto diff = target-pos;
+    auto yaw = atan2(diff.y, diff.x) * 180/M_PI;
+    auto dist = sqrt(diff.x*diff.x + diff.y*diff.y);
+
+    sf::Vector2f a;
+    a.x = dist - 0.15;
+    a.y = 0.15;
+
+    sf::Vector2f b = a;
+    b.y *= -1;
+    
+    sf::Vector2f base = a;
+    base.y = 0;
+
+    sf::Transform transform;
+    transform.rotate(yaw);
+
+    a = transform.transformPoint(a);
+    b = transform.transformPoint(b);
+    base = transform.transformPoint(base);
+
+    drawAnyLine(window, pos, pos+base, id);
+    drawAnyLine(window, pos+a, pos+base, id);
+    drawAnyLine(window, pos+b, pos+base, id);
+    drawAnyLine(window, pos+a, target, id);
+    drawAnyLine(window, pos+b, target, id);
+}
+
 /**
  * Draw a RoboCup player at given pose
  */
@@ -196,6 +255,35 @@ void drawPlayer(
     shape3.move(sf::Vector2f(pos.x, -pos.y));
     shape3.setFillColor(getColor(id));
     window.draw(shape3);
+}
+
+/**
+ * Drawing target for placing
+ */
+void drawTarget(sf::RenderWindow& window, 
+    const sf::Vector2f& pos,
+    const sf::Vector2f& localTarget,
+    const sf::Vector2f& target,
+    int id)
+{
+    double sizeX = 0.1;
+    double sizeY = 0.02;
+
+    for (int angle : {-45, 45}) {
+        sf::RectangleShape shape1(sf::Vector2f(sizeX, sizeY));
+        shape1.setOrigin(sizeX/2.0, sizeY/2.0);
+        shape1.rotate(angle);
+        shape1.move(sf::Vector2f(localTarget.x, -localTarget.y));
+        shape1.setFillColor(getColor(id));
+        window.draw(shape1);
+        
+        sf::RectangleShape shape2(sf::Vector2f(sizeX*2, sizeY*2));
+        shape2.setOrigin(sizeX*2/2.0, sizeY*2/2.0);
+        shape2.rotate(angle);
+        shape2.move(sf::Vector2f(target.x, -target.y));
+        shape2.setFillColor(getColor(id));
+        window.draw(shape2);
+    }
 }
 
 /**
@@ -657,6 +745,20 @@ int main(int argc, char** argv)
                 std::stringstream ssBall;
                 ssBall << std::fixed << std::setprecision(2) << info.ballQ;
                 drawText(window, font, ssBall.str(), ballPos - sf::Vector2f(0.0, 0.35), id);
+
+                if (info.state == BallHandling || info.state == Playing) {
+                    sf::Vector2f ballTarget(info.ballTargetX*isInverted, info.ballTargetY*isInverted);
+                    drawBallArrow(window, ballPos, ballTarget, id);
+                }
+            }
+            // Draw placing target
+            if (info.placing) {
+                drawTarget(window, sf::Vector2f(robotPos.x, robotPos.y),
+                        sf::Vector2f(info.localTargetX*isInverted, info.localTargetY*isInverted), 
+                        sf::Vector2f(info.targetX*isInverted, info.targetY*isInverted),
+                        id
+                        );
+
             }
             //Print information
             std::stringstream ssRobot;
