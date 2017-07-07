@@ -320,6 +320,13 @@ bool loadReplayLine(std::ifstream& replay,
         double fieldYaw;
         double fieldQ;
         double timestamp;
+        double targetX;
+        double targetY;
+        double localTargetX;
+        double localTargetY;
+        double ballTargetX;
+        double ballTargetY;
+        bool placing;
         std::string stateReferee = "";
         std::string stateRobocup = "";
         std::string statePlaying = "";
@@ -336,6 +343,13 @@ bool loadReplayLine(std::ifstream& replay,
         replay >> fieldYaw;
         replay >> fieldQ;
         replay >> timestamp;
+        replay >> targetX;
+        replay >> targetY;
+        replay >> localTargetX;
+        replay >> localTargetY;
+        replay >> ballTargetX;
+        replay >> ballTargetY;
+        replay >> placing;
         while (true) {
             char c;
             replay >> c;
@@ -403,6 +417,13 @@ bool loadReplayLine(std::ifstream& replay,
         info.fieldYaw = fieldYaw;
         info.fieldQ = fieldQ;
         info.timestamp = timestamp;
+        info.targetX = targetX;
+        info.targetY = targetY;
+        info.localTargetX = localTargetX;
+        info.localTargetY = localTargetY;
+        info.ballTargetX = ballTargetX;
+        info.ballTargetY = ballTargetY;
+        info.placing = placing;
         strcpy(info.stateReferee, stateReferee.c_str());
         strcpy(info.stateRobocup, stateRobocup.c_str());
         strcpy(info.statePlaying, statePlaying.c_str());
@@ -716,6 +737,13 @@ int main(int argc, char** argv)
                     << std::setprecision(10) << info.fieldYaw << " "
                     << std::setprecision(10) << info.fieldQ << " "
                     << std::setprecision(10) << info.timestamp << " "
+                    << std::setprecision(10) << info.targetX << " "
+                    << std::setprecision(10) << info.targetY << " "
+                    << std::setprecision(10) << info.localTargetX << " "
+                    << std::setprecision(10) << info.localTargetY << " "
+                    << std::setprecision(10) << info.ballTargetX << " "
+                    << std::setprecision(10) << info.ballTargetY << " "
+                    << std::setprecision(10) << info.placing << " "
                     << info.stateReferee << "$ "
                     << info.stateRobocup << "$ "
                     << info.statePlaying << "$ "
