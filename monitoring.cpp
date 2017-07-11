@@ -719,8 +719,10 @@ int main(int argc, char** argv)
             log << std::setprecision(10) << TimeStamp::now().getTimeMS() << " " << currentFrame << " ";
             log << allInfo.size() << " ";
         }
+        size_t index = 0;
         //Draw players info
         for (const auto& it : allInfo) {
+            index++;
             size_t id = it.first;
             const TeamPlayInfo& info = it.second;
             //Log data
@@ -849,13 +851,13 @@ int main(int argc, char** argv)
                 ssRobot << "!!!!!!!!!! ";
             }
             ssRobot << "Age: " << std::fixed << std::setprecision(2) <<  age << "s" << std::endl;
-            if (id == 1) {
+            if (index == 1) {
                 drawText(window, font, ssRobot.str(), sf::Vector2f(-6.5, 3.0), id);
-            } else if (id == 2) {
+            } else if (index == 2) {
                 drawText(window, font, ssRobot.str(), sf::Vector2f(-6.5, -1.2), id);
-            } else if (id == 3) {
+            } else if (index == 3) {
                 drawText(window, font, ssRobot.str(), sf::Vector2f(4.75, 3.0), id);
-            } else if (id == 4) {
+            } else if (index == 4) {
                 drawText(window, font, ssRobot.str(), sf::Vector2f(4.75, -1.2), id);
             } else {
                 drawText(window, font, ssRobot.str(), sf::Vector2f(-6.5, 5.2 - id*1.8), id);
