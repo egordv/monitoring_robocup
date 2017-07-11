@@ -775,8 +775,10 @@ int main(int argc, char** argv)
                 drawText(window, font, ssBall.str(), ballPos - sf::Vector2f(0.0, 0.35), id);
 
                 if (info.state == BallHandling || info.state == Playing) {
-                    sf::Vector2f ballTarget(info.ballTargetX*isInverted, info.ballTargetY*isInverted);
-                    drawBallArrow(window, ballPos, ballTarget, id);
+                    if (std::string(info.statePlaying) == "approach") {
+                        sf::Vector2f ballTarget(info.ballTargetX*isInverted, info.ballTargetY*isInverted);
+                        drawBallArrow(window, ballPos, ballTarget, id);
+                    }
                 }
             }
             // Draw placing target
