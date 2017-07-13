@@ -793,10 +793,11 @@ int main(int argc, char** argv)
             //Print information
             std::stringstream ssRobot;
             ssRobot << "id: " << id << " ";
-            if (id == 1) ssRobot << "Chewbacca";
+            if (id == 1) ssRobot << "Olive";
             if (id == 2) ssRobot << "Mowgly";
             if (id == 3) ssRobot << "Django";
             if (id == 4) ssRobot << "Tom";
+            if (id == 5) ssRobot << "Chewbacca";
             ssRobot << std::endl;
             ssRobot << "State: ";
             if (info.state == Inactive) {
