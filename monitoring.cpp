@@ -597,7 +597,9 @@ int main(int argc, char** argv)
     const int width = 1600;
     const double ratio = 16.0/9.0;
     const int height = width/ratio;
-    sf::RenderWindow window(sf::VideoMode(width, height), "MonitoringViewer");
+    sf::ContextSettings settings;
+    settings.antialiasingLevel = 8;
+    sf::RenderWindow window(sf::VideoMode(width, height), "MonitoringViewer", sf::Style::Default, settings);
     //Load font file
     sf::Font font;
     if (!font.loadFromFile("font.ttf")) {
@@ -795,7 +797,13 @@ int main(int argc, char** argv)
             //Draw info
             drawPlayer(window, sf::Vector2f(robotPos.x, robotPos.y), yaw*180.0/M_PI, id);
             if (info.ballQ > 0.0) {
-                drawBall(window, ballPos, id);
+                if (info.state == BallHandling) {
+                    drawBall(window, ballPos, id);
+                } else {
+                    globalAlpha = 100;
+                    drawBall(window, ballPos, id);
+                    globalAlpha = 255;
+                }
                 std::stringstream ssBall;
                 ssBall << std::fixed << std::setprecision(2) << info.ballQ;
                 drawText(window, font, ssBall.str(), ballPos - sf::Vector2f(0.0, 0.35), id);
