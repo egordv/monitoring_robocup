@@ -797,16 +797,15 @@ int main(int argc, char** argv)
             //Draw info
             drawPlayer(window, sf::Vector2f(robotPos.x, robotPos.y), yaw*180.0/M_PI, id);
             if (info.ballQ > 0.0) {
-                if (info.state == BallHandling) {
-                    drawBall(window, ballPos, id);
-                } else {
+                if (info.state != BallHandling) {
                     globalAlpha = 100;
-                    drawBall(window, ballPos, id);
-                    globalAlpha = 255;
                 }
+                drawBall(window, ballPos, id);
+
                 std::stringstream ssBall;
                 ssBall << std::fixed << std::setprecision(2) << info.ballQ;
                 drawText(window, font, ssBall.str(), ballPos - sf::Vector2f(0.0, 0.35), id);
+                globalAlpha = 255;
 
                 if (info.state == BallHandling || info.state == Playing) {
                     if (std::string(info.statePlaying) == "approach") {
