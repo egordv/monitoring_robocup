@@ -8,6 +8,7 @@
 #include <chrono>
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
+#include <geometry/Point.hpp>
 #include <Eigen/Dense>
 #include <Constants.h>
 #include "timing/TimeStamp.hpp"
@@ -22,6 +23,8 @@ using namespace cv;
 
 using namespace Utils::Timing;
 static bool stopped = false;
+
+int globalAlpha = 255;
 
 /**
  * Draw between given point a RoboCup line
@@ -94,24 +97,24 @@ void drawField(
  */
 sf::Color getColor(int id)
 {
-    sf::Color color(200, 200, 200);
+    sf::Color color(200, 200, 200, globalAlpha);
     if (id == 1) {
-        color = sf::Color(220, 0, 0);
+        color = sf::Color(220, 0, 0, globalAlpha);
     }
     if (id == 2) {
-        color = sf::Color(0, 220, 0);
+        color = sf::Color(0, 220, 0, globalAlpha);
     }
     if (id == 3) {
-        color = sf::Color(0, 220, 220);
+        color = sf::Color(0, 220, 220, globalAlpha);
     }
     if (id == 4) {
-        color = sf::Color(220, 220, 0);
+        color = sf::Color(220, 220, 0, globalAlpha);
     }
     if (id == 5) {
-        color = sf::Color(0, 0, 220);
+        color = sf::Color(0, 0, 220, globalAlpha);
     }
     if (id == 6) {
-        color = sf::Color(220, 0, 220);
+        color = sf::Color(220, 0, 220, globalAlpha);
     }
     return color;
 }
@@ -255,6 +258,20 @@ void drawPlayer(
     window.draw(shape3);
 }
 
+void drawDashedLine(sf::RenderWindow& window, 
+    ::Point pt1,
+    ::Point pt2,
+    int id)
+{
+    double delta = 0.1;
+    while ((pt2-pt1).getLength() > delta) {
+        ::Point target = pt1 + (pt2-pt1).normalize(delta/2);
+        drawAnyLine(window, sf::Vector2f(pt1.x, pt1.y),
+                sf::Vector2f(target.x, target.y), id);
+        pt1 = pt1 + (pt2-pt1).normalize(delta);
+    }
+}
+
 /**
  * Drawing target for placing
  */
@@ -266,6 +283,15 @@ void drawTarget(sf::RenderWindow& window,
 {
     double sizeX = 0.1;
     double sizeY = 0.02;
+
+    ::Point pt(pos.x, pos.y);
+    ::Point pt2(localTarget.x, localTarget.y);
+    ::Point pt3(target.x, target.y);
+
+    drawDashedLine(window, pt, pt2, id);
+    globalAlpha = 100;
+    drawDashedLine(window, pt2, pt3, id);
+    globalAlpha = 255;
 
     for (int angle : {-45, 45}) {
         sf::RectangleShape shape1(sf::Vector2f(sizeX, sizeY));
