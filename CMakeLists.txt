@@ -43,6 +43,7 @@ set(SFML_DIRECTORY "SFML" CACHE STRING "SFML lib directory")
 include_directories(${SFML_DIRECTORY}/include)
 link_directories(${SFML_DIRECTORY}/lib)
 add_executable(MonitoringRoboCup
+    RichText.cpp
     monitoring.cpp
 )
 target_link_libraries(MonitoringRoboCup

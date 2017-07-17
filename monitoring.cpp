@@ -15,6 +15,7 @@
 #include "sockets/UDPBroadcast.hpp"
 #include "services/TeamPlayService.h"
 #include "RefereeClient.hpp"
+#include "RichText.hpp"
 #ifdef USE_CAMERA
 #include <opencv2/opencv.hpp>
 
@@ -25,6 +26,7 @@ using namespace Utils::Timing;
 static bool stopped = false;
 
 int globalAlpha = 255;
+sf::Font font;
 
 /**
  * Draw between given point a RoboCup line
@@ -99,7 +101,7 @@ sf::Color getColor(int id)
 {
     sf::Color color(200, 200, 200, globalAlpha);
     if (id == 1) {
-        color = sf::Color(220, 0, 0, globalAlpha);
+        color = sf::Color(210, 0, 255, globalAlpha);
     }
     if (id == 2) {
         color = sf::Color(0, 220, 0, globalAlpha);
@@ -111,7 +113,7 @@ sf::Color getColor(int id)
         color = sf::Color(220, 220, 0, globalAlpha);
     }
     if (id == 5) {
-        color = sf::Color(0, 0, 220, globalAlpha);
+        color = sf::Color(0, 96, 255, globalAlpha);
     }
     if (id == 6) {
         color = sf::Color(220, 0, 220, globalAlpha);
@@ -125,21 +127,28 @@ sf::Color getColor(int id)
  */
 void drawText(
     sf::RenderWindow& window,
-    const sf::Font& font,
-    const std::string& str,
+    sfe::RichText &text,
     const sf::Vector2f& pos,
     int id)
 {
     double size = 0.008;
-    sf::Text text;
     text.setFont(font); 
-    text.setString(str);
     text.setCharacterSize(20);
-    text.setColor(getColor(id));
     text.move(pos.x, -pos.y);
     text.scale(size, size);
     text.move(0.0, -size*20.0);
     window.draw(text);
+}
+
+void drawText(
+    sf::RenderWindow& window,
+    const std::string &str,
+    const sf::Vector2f& pos,
+    int id)
+{
+    sfe::RichText text(font);
+    text << getColor(id) << str;
+    drawText(window, text, pos, id);
 }
 
 /**
@@ -357,7 +366,7 @@ bool loadReplayLine(std::ifstream& replay,
         std::string stateRobocup = "";
         std::string statePlaying = "";
         std::string stateSearch = "";
-        std::string stateLowlevel = "";
+        std::string hardwareWarnings = "";
         replay >> id;
         replay >> state;
         replay >> priority;
@@ -421,12 +430,14 @@ bool loadReplayLine(std::ifstream& replay,
             replay.ignore();
         }
         while (true) {
+            replay >> std::noskipws;
             char c;
             replay >> c;
             if (c == '$') break;
             if (c == EOF || !replay.good()) return false;
-            stateLowlevel += c;
+            hardwareWarnings += c;
         }
+        replay >> std::skipws;
         replay.ignore();
         while (replay.peek() == ' ' && replay.peek() != EOF) {
             replay.ignore();
@@ -454,7 +465,8 @@ bool loadReplayLine(std::ifstream& replay,
         strcpy(info.stateRobocup, stateRobocup.c_str());
         strcpy(info.statePlaying, statePlaying.c_str());
         strcpy(info.stateSearch, stateSearch.c_str());
-        strcpy(info.stateLowlevel, stateLowlevel.c_str());
+        strncpy(info.hardwareWarnings, hardwareWarnings.c_str(), sizeof(info.hardwareWarnings));
+
         allInfo[id] = info;
     }
     if (replayTime != nullptr) {
@@ -591,7 +603,6 @@ int main(int argc, char** argv)
     bool replayFast = false;
     bool replaySuperFast = false;
     bool replayBackward = false;
-    double replaySpeed = 0.0;
         
     //SFML Window initialization
     const int width = 1600;
@@ -601,7 +612,6 @@ int main(int argc, char** argv)
     settings.antialiasingLevel = 8;
     sf::RenderWindow window(sf::VideoMode(width, height), "MonitoringViewer", sf::Style::Default, settings);
     //Load font file
-    sf::Font font;
     if (!font.loadFromFile("font.ttf")) {
         throw std::logic_error("MonitoringViewer fail to load font");
     }
@@ -647,7 +657,6 @@ int main(int argc, char** argv)
                 }
                 info.timestamp = TimeStamp::now().getTimeMS();
                 allInfo[info.id] = info;
-                double replaySpeed = 0.0;
                 std::cout << "Receiving data from id=" 
                     << info.id << " ts=" 
                     << std::setprecision(10) << info.timestamp << std::endl;
@@ -778,7 +787,7 @@ int main(int argc, char** argv)
                     << info.stateRobocup << "$ "
                     << info.statePlaying << "$ "
                     << info.stateSearch << "$ "
-                    << info.stateLowlevel << "$ " << std::endl;
+                    << info.hardwareWarnings << "$ " << std::endl;
             }
             //Retrieve robot
             double yaw = info.fieldYaw;
@@ -804,7 +813,7 @@ int main(int argc, char** argv)
 
                 std::stringstream ssBall;
                 ssBall << std::fixed << std::setprecision(2) << info.ballQ;
-                drawText(window, font, ssBall.str(), ballPos - sf::Vector2f(0.0, 0.35), id);
+                drawText(window, ssBall.str(), ballPos - sf::Vector2f(0.0, 0.35), id);
                 globalAlpha = 255;
 
                 if (info.state == BallHandling || info.state == Playing) {
@@ -824,86 +833,107 @@ int main(int argc, char** argv)
 
             }
             //Print information
-            std::stringstream ssRobot;
-            ssRobot << "id: " << id << " ";
-            if (id == 1) ssRobot << "Olive";
-            if (id == 2) ssRobot << "Mowgly";
-            if (id == 3) ssRobot << "Django";
-            if (id == 4) ssRobot << "Tom";
-            if (id == 5) ssRobot << "Chewbacca";
-            ssRobot << std::endl;
-            ssRobot << "State: ";
+            sfe::RichText text(font);
+            text << getColor(id);
+
+            text << sf::Text::Bold;
+            {
+                std::stringstream ss;
+                ss << id;
+                text << "ID " << ss.str() << " - ";
+            }
+            if (id == 1) text << "Olive";
+            if (id == 2) text << "Mowgly";
+            if (id == 3) text << "Django";
+            if (id == 4) text << "Tom";
+            if (id == 5) text << "Chewbacca";
+            text << "\n";
+            text << sf::Text::Regular;
+            text << "State: ";
             if (info.state == Inactive) {
-                ssRobot << "Inactive";
+                text << "Inactive";
             }
             if (info.state == Playing) {
-                ssRobot << "Playing";
+                text << "Playing";
             }
             if (info.state == BallHandling) {
-                ssRobot << "BallHandling";
+                text << "BallHandling";
             }
             if (info.state == PlacingA) {
-                ssRobot << "Placing (A)";
+                text << "Placing (A)";
             }
             if (info.state == PlacingB) {
-                ssRobot << "Placing (B)";
+                text << "Placing (B)";
             }
             if (info.state == PlacingC) {
-                ssRobot << "Placing (C)";
+                text << "Placing (C)";
             }
             if (info.state == PlacingD) {
-                ssRobot << "Placing (D)";
+                text << "Placing (D)";
             }
-            ssRobot << std::endl;
-            ssRobot << "Priority: ";
+            text << "\n";
+            text << "Priority: ";
             if (info.priority == LowPriority) {
-                ssRobot << "Low";
+                text << "Low";
             }
             if (info.priority == NormalPriority) {
-                ssRobot << "Normal";
+                text << "Normal";
             }
             if (info.priority == HighPriority) {
-                ssRobot << "Hight";
+                text << "Hight";
             }
-            ssRobot << std::endl;
-            ssRobot << "Referee: " << info.stateReferee << std::endl;
-            ssRobot << "RoboCup: " << info.stateRobocup << std::endl;
-            ssRobot << "Playing: " << info.statePlaying << std::endl;
-            ssRobot << "Search: " << info.stateSearch << std::endl;
-            ssRobot << "LowLevel: ";
-            if (info.stateLowlevel[0] != '\0') {
-                ssRobot << "!!!!!!!!!! ";
+            text << "\n";
+            text << "Referee: " << info.stateReferee << "\n";
+            text << "RoboCup: " << info.stateRobocup << "\n";
+            text << "Playing: " << info.statePlaying << "\n";
+            text << "Search: " << info.stateSearch << "\n";
+            
+                
+            {
+                std::stringstream ss;
+                ss << "FieldQ: " << std::fixed << std::setprecision(2) 
+                    << info.fieldQ << std::endl;
+                text << ss.str();
             }
-            ssRobot << info.stateLowlevel << std::endl;
-            ssRobot << "FieldQ: " << std::fixed << std::setprecision(2) 
-                << info.fieldQ << std::endl;
             double age;
             if (!isReplay) {
                 age = (TimeStamp::now().getTimeMS() - info.timestamp)/1000.0;
             } else {
                 age = (replayTime - info.timestamp)/1000.0;
             }
-            if (age > 5.0) {
-                ssRobot << "!!!!!!!!!! ";
+            
+            if (info.hardwareWarnings[0] != '\0') {
+                std::cout << "WARNINGS: " << info.hardwareWarnings << std::endl;
+                text << sf::Color::Red;
+                text << std::string(info.hardwareWarnings) << "\n";
+                text << getColor(id);
             }
-            ssRobot << "Age: " << std::fixed << std::setprecision(2) <<  age << "s" << std::endl;
+
+            if (age > 5.0) {
+                text << sf::Color::Red;
+                std::stringstream ss;
+                ss << "Outdated (" << age << "s)";
+                text << ss.str();
+                text << getColor(id);
+            }
+
             if (index == 1) {
-                drawText(window, font, ssRobot.str(), sf::Vector2f(-6.5, 3.0), id);
+                drawText(window, text, sf::Vector2f(-6.5, 3.0), id);
             } else if (index == 2) {
-                drawText(window, font, ssRobot.str(), sf::Vector2f(-6.5, -1.2), id);
+                drawText(window, text, sf::Vector2f(-6.5, -1.2), id);
             } else if (index == 3) {
-                drawText(window, font, ssRobot.str(), sf::Vector2f(4.75, 3.0), id);
+                drawText(window, text, sf::Vector2f(4.75, 3.0), id);
             } else if (index == 4) {
-                drawText(window, font, ssRobot.str(), sf::Vector2f(4.75, -1.2), id);
+                drawText(window, text, sf::Vector2f(4.75, -1.2), id);
             } else {
-                drawText(window, font, ssRobot.str(), sf::Vector2f(-6.5, 5.2 - id*1.8), id);
+                drawText(window, text, sf::Vector2f(-6.5, 5.2 - id*1.8), id);
             }
             if (isReplay) {
                 std::stringstream ssTime;
                 ssTime << "Time: " 
                     << std::fixed << std::setprecision(2) 
                     << (replayTime-startReplayTime)/1000.0 << "s";
-                drawText(window, font, 
+                drawText(window, 
                     ssTime.str(),  
                     sf::Vector2f(0.0, 3.5), 0);
             }
