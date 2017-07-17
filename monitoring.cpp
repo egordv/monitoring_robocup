@@ -903,7 +903,6 @@ int main(int argc, char** argv)
             }
             
             if (info.hardwareWarnings[0] != '\0') {
-                std::cout << "WARNINGS: " << info.hardwareWarnings << std::endl;
                 text << sf::Color::Red;
                 text << std::string(info.hardwareWarnings) << "\n";
                 text << getColor(id);
