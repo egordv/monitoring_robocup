@@ -386,12 +386,14 @@ bool loadReplayLine(std::ifstream& replay,
         replay >> ballTargetY;
         replay >> placing;
         while (true) {
+            replay >> std::noskipws;
             char c;
             replay >> c;
             if (c == '$') break;
             if (c == EOF || !replay.good()) return false;
             stateReferee += c;
         }
+        replay >> std::skipws;
         replay.ignore();
         while (replay.peek() == ' ' && replay.peek() != EOF) {
             replay.ignore();
@@ -461,11 +463,13 @@ bool loadReplayLine(std::ifstream& replay,
         info.ballTargetX = ballTargetX;
         info.ballTargetY = ballTargetY;
         info.placing = placing;
-        strcpy(info.stateReferee, stateReferee.c_str());
+        strncpy(info.stateReferee, stateReferee.c_str(), sizeof(info.stateReferee));
+        info.stateReferee[sizeof(info.stateReferee)-1] = '\0';
         strcpy(info.stateRobocup, stateRobocup.c_str());
         strcpy(info.statePlaying, statePlaying.c_str());
         strcpy(info.stateSearch, stateSearch.c_str());
         strncpy(info.hardwareWarnings, hardwareWarnings.c_str(), sizeof(info.hardwareWarnings));
+        info.hardwareWarnings[sizeof(info.hardwareWarnings)-1] = '\0';
 
         allInfo[id] = info;
     }
