@@ -354,6 +354,7 @@ bool loadReplayLine(std::ifstream& replay,
         double fieldY;
         double fieldYaw;
         double fieldQ;
+        double fieldConsistency;
         double timestamp;
         double targetX;
         double targetY;
@@ -377,6 +378,7 @@ bool loadReplayLine(std::ifstream& replay,
         replay >> fieldY;
         replay >> fieldYaw;
         replay >> fieldQ;
+        replay >> fieldConsistency;
         replay >> timestamp;
         replay >> targetX;
         replay >> targetY;
@@ -455,6 +457,7 @@ bool loadReplayLine(std::ifstream& replay,
         info.fieldY = fieldY;
         info.fieldYaw = fieldYaw;
         info.fieldQ = fieldQ;
+        info.fieldConsistency = fieldConsistency;
         info.timestamp = timestamp;
         info.targetX = targetX;
         info.targetY = targetY;
@@ -779,6 +782,7 @@ int main(int argc, char** argv)
                     << std::setprecision(10) << info.fieldY << " "
                     << std::setprecision(10) << info.fieldYaw << " "
                     << std::setprecision(10) << info.fieldQ << " "
+                    << std::setprecision(10) << info.fieldConsistency << " "
                     << std::setprecision(10) << info.timestamp << " "
                     << std::setprecision(10) << info.targetX << " "
                     << std::setprecision(10) << info.targetY << " "
@@ -821,7 +825,8 @@ int main(int argc, char** argv)
                 globalAlpha = 255;
 
                 if (info.state == BallHandling || info.state == Playing) {
-                    if (std::string(info.statePlaying) == "approach") {
+                    if (std::string(info.statePlaying) == "approach" ||
+                            std::string(info.statePlaying) == "walkBall") {
                         sf::Vector2f ballTarget(info.ballTargetX*isInverted, info.ballTargetY*isInverted);
                         drawBallArrow(window, ballPos, ballTarget, id);
                     }
@@ -897,6 +902,8 @@ int main(int argc, char** argv)
                 std::stringstream ss;
                 ss << "FieldQ: " << std::fixed << std::setprecision(2) 
                     << info.fieldQ << std::endl;
+                ss << "FieldConsistency: " << std::fixed << std::setprecision(2) 
+                    << info.fieldConsistency << std::endl;
                 text << ss.str();
             }
             double age;
