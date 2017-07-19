@@ -116,7 +116,7 @@ sf::Color getColor(int id)
         color = sf::Color(0, 96, 255, globalAlpha);
     }
     if (id == 6) {
-        color = sf::Color(220, 0, 220, globalAlpha);
+        color = sf::Color(255, 132, 0, globalAlpha);
     }
     return color;
 }
@@ -853,7 +853,7 @@ int main(int argc, char** argv)
             }
             if (id == 1) text << "Olive";
             if (id == 2) text << "Mowgly";
-            if (id == 3) text << "Django";
+            if (id == 6) text << "Django";
             if (id == 4) text << "Tom";
             if (id == 5) text << "Chewbacca";
             text << "\n";
