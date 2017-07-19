@@ -522,7 +522,7 @@ void captureThread()
 
 void showThread()
 {
-    size_t frame;
+    size_t frame = 0;
     namedWindow("Frames", 1);
 
     while (!stopped) {
@@ -548,8 +548,8 @@ int main(int argc, char** argv)
     int port = 27645;
     //Parse arguments for log replays
     bool isReplay = false;
-    double replayTime, replayTargetTime;
-    double startReplayTime, endReplayTime;
+    double replayTime=0, replayTargetTime=0;
+    double startReplayTime=0, endReplayTime=0;
     std::string replayFilename;
     if (argc == 1) {
         std::cout << "Starting UDP listening on " << port << std::endl;
