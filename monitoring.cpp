@@ -902,11 +902,15 @@ int main(int argc, char** argv)
             if (id == 4) text << "Tom";
             if (id == 5) text << "Chewbacca";
             if (id == 6) text << "Django";
+
+            /*
             {
                 std::stringstream ss;
                 ss << " [" << (int)info.hour << ":" << (int)info.min << ":" << (int)info.sec << "]";
                 text << ss.str();
             }
+            */
+
             text << "\n";
             text << sf::Text::Regular;
             text << "State: ";
