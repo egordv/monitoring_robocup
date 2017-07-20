@@ -16,6 +16,8 @@
 #include "services/TeamPlayService.h"
 #include "RefereeClient.hpp"
 #include "RichText.hpp"
+#include "log.h"
+#include "util.h"
 #ifdef USE_CAMERA
 #include <opencv2/opencv.hpp>
 
@@ -363,6 +365,7 @@ bool loadReplayLine(std::ifstream& replay,
         double ballTargetX;
         double ballTargetY;
         bool placing;
+        int hour, min, sec;
         std::string stateReferee = "";
         std::string stateRobocup = "";
         std::string statePlaying = "";
@@ -387,6 +390,9 @@ bool loadReplayLine(std::ifstream& replay,
         replay >> ballTargetX;
         replay >> ballTargetY;
         replay >> placing;
+        replay >> hour;
+        replay >> min;
+        replay >> sec;
         while (true) {
             replay >> std::noskipws;
             char c;
@@ -466,6 +472,9 @@ bool loadReplayLine(std::ifstream& replay,
         info.ballTargetX = ballTargetX;
         info.ballTargetY = ballTargetY;
         info.placing = placing;
+        info.hour = hour;
+        info.min = min;
+        info.sec = sec;
         strncpy(info.stateReferee, stateReferee.c_str(), sizeof(info.stateReferee));
         info.stateReferee[sizeof(info.stateReferee)-1] = '\0';
         strcpy(info.stateRobocup, stateRobocup.c_str());
@@ -500,22 +509,27 @@ void captureThread()
     auto last = TimeStamp::now();
 
     while (!stopped) {
-        n++;
-        Mat frame;
-        cap >> frame;
-    
-        auto frameTs = TimeStamp::now();
+        if (cap.isOpened()) {
+            n++;
+            Mat frame;
+            cap >> frame;
+        
+            auto frameTs = TimeStamp::now();
 
-        if (frameTs.getTimeMS() - last.getTimeMS() > 150) {
-            last = frameTs;
-            lastFrame = n;
-            std::stringstream ss;
-            ss << "frame_" << n << ".jpeg";
-            imwrite(ss.str(), frame);
-            
-            frameMutex.lock();
-            hasNewFrame = true;
-            frameMutex.unlock();
+            if (frameTs.getTimeMS() - last.getTimeMS() > 150) {
+                last = frameTs;
+                lastFrame = n;
+                std::stringstream ss;
+                ss << "frame_" << n << ".jpeg";
+                imwrite(ss.str(), frame);
+                
+                frameMutex.lock();
+                hasNewFrame = true;
+                frameMutex.unlock();
+            }
+        } else {
+            std::this_thread::sleep_for(
+                std::chrono::milliseconds(500));
         }
     }
 }
@@ -523,18 +537,20 @@ void captureThread()
 void showThread()
 {
     size_t frame = 0;
-    namedWindow("Frames", 1);
+    namedWindow("Frames", CV_WINDOW_NORMAL | CV_WINDOW_KEEPRATIO);
 
     while (!stopped) {
         if (currentFrame && frame != currentFrame) {
             frame = currentFrame;
             std::stringstream ss;
             ss << "frame_" << frame << ".jpeg";
-            try {
-                auto img = imread(ss.str());
-                imshow("Frames", img);
-            } catch (cv::Exception) {
-                std::cerr << "Can't read " << ss.str() << std::endl;
+            if (file_exists(ss.str())) {
+                try {
+                    auto img = imread(ss.str());
+                    imshow("Frames", img);
+                } catch (cv::Exception) {
+                    std::cerr << "Can't read " << ss.str() << std::endl;
+                }
             }
         }
         waitKey(30);
@@ -551,16 +567,22 @@ int main(int argc, char** argv)
     double replayTime=0, replayTargetTime=0;
     double startReplayTime=0, endReplayTime=0;
     std::string replayFilename;
+    uint8_t logRobot = 0;
+    Log outLog;
     if (argc == 1) {
         std::cout << "Starting UDP listening on " << port << std::endl;
         isReplay = false;
-    } else if (argc == 2) {
+    } else if (argc >= 2) {
         replayFilename = argv[1];
+        if (argc >= 4) {
+            logRobot = atoi(argv[2]);
+            outLog.load(std::string(argv[3]));
+        }
         port = -1;
         isReplay = true;
         std::cout << "Loading replay from " << replayFilename << std::endl;
     } else {
-        std::cout << "Usage: ./MonitoringViewer [log_replay]" << std::endl;
+        std::cout << "Usage: ./MonitoringViewer [log_replay] [out.log]" << std::endl;
         return 1;
     }
 
@@ -650,7 +672,7 @@ int main(int argc, char** argv)
     }
 
     //Main loop
-    while (window.isOpen()){
+    while (window.isOpen()) {
         bool isUpdate = false;
         if (!isReplay) {
             //Receiving information
@@ -680,6 +702,7 @@ int main(int argc, char** argv)
             frameMutex.unlock();
 #endif
         } else {
+            auto before = replayContainerInfo[replayIndex];
             if (!replayIsPaused && replayIndex < replayContainerInfo.size()) {
                 double sign = 1;
                 if (replayBackward) {
@@ -696,7 +719,7 @@ int main(int argc, char** argv)
                 if (replayTargetTime < startReplayTime) replayTargetTime = startReplayTime;
                 if (replayTargetTime > endReplayTime) replayTargetTime = endReplayTime;
 
-                while (replayTime < replayTargetTime && replayIndex < replayContainerTime.size()) {
+                while (replayTime < replayTargetTime && replayIndex < replayContainerTime.size()-1) {
                     allInfo = replayContainerInfo[replayIndex];
                     replayTime = replayContainerTime[replayIndex];
                     currentFrame = replayContainerFrame[replayIndex];
@@ -707,6 +730,25 @@ int main(int argc, char** argv)
                     replayTime = replayContainerTime[replayIndex];
                     currentFrame = replayContainerFrame[replayIndex];
                     replayIndex--;
+                }
+            }
+            auto after = replayContainerInfo[replayIndex];
+            if (logRobot && before.count(logRobot) && after.count(logRobot)) {
+                uint8_t h1 = before[logRobot].hour;
+                uint8_t m1 = before[logRobot].min;
+                uint8_t s1 = before[logRobot].sec;
+                uint8_t h2 = after[logRobot].hour;
+                uint8_t m2 = after[logRobot].min;
+                uint8_t s2 = after[logRobot].sec;
+                std::vector<Log::Entry> entries;
+                if (replayBackward) {
+                    entries = outLog.entriesBetween(h2, m2, s2, h1, m1, s1);
+                } else {
+                    entries = outLog.entriesBetween(h1, m1, s1, h2, m2, s2);
+                }
+
+                for (auto &entry : entries) {
+                    std::cout << "[OUT.LOG] " << entry.message << std::endl;
                 }
             }
             
@@ -791,6 +833,9 @@ int main(int argc, char** argv)
                     << std::setprecision(10) << info.ballTargetX << " "
                     << std::setprecision(10) << info.ballTargetY << " "
                     << std::setprecision(10) << info.placing << " "
+                    << (int)info.hour << " "
+                    << (int)info.min << " "
+                    << (int)info.sec << " "
                     << info.stateReferee << "$ "
                     << info.stateRobocup << "$ "
                     << info.statePlaying << "$ "
@@ -857,6 +902,11 @@ int main(int argc, char** argv)
             if (id == 4) text << "Tom";
             if (id == 5) text << "Chewbacca";
             if (id == 6) text << "Django";
+            {
+                std::stringstream ss;
+                ss << " [" << (int)info.hour << ":" << (int)info.min << ":" << (int)info.sec << "]";
+                text << ss.str();
+            }
             text << "\n";
             text << sf::Text::Regular;
             text << "State: ";

@@ -45,6 +45,7 @@ link_directories(${SFML_DIRECTORY}/lib)
 add_executable(MonitoringRoboCup
     RichText.cpp
     monitoring.cpp
+    log.cpp
 )
 target_link_libraries(MonitoringRoboCup
     ${LIBRARIES}
