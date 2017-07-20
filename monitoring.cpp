@@ -853,9 +853,10 @@ int main(int argc, char** argv)
             }
             if (id == 1) text << "Olive";
             if (id == 2) text << "Mowgly";
-            if (id == 6) text << "Django";
+            if (id == 3) text << "Arya";
             if (id == 4) text << "Tom";
             if (id == 5) text << "Chewbacca";
+            if (id == 6) text << "Django";
             text << "\n";
             text << sf::Text::Regular;
             text << "State: ";
