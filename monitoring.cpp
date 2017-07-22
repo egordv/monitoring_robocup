@@ -871,7 +871,8 @@ int main(int argc, char** argv)
 
                 if (info.state == BallHandling || info.state == Playing) {
                     if (std::string(info.statePlaying) == "approach" ||
-                            std::string(info.statePlaying) == "walkBall") {
+                            std::string(info.statePlaying) == "walkBall" ||
+                            std::string(info.statePlaying) == "letPlay") {
                         sf::Vector2f ballTarget(info.ballTargetX*isInverted, info.ballTargetY*isInverted);
                         drawBallArrow(window, ballPos, ballTarget, id);
                     }
