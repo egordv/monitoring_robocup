@@ -3,12 +3,12 @@ project(MonitoringRoboCup)
 
 find_package(
     catkin REQUIRED COMPONENTS
-    RhobanUtils Eigen RhobanServer RobocupReferee
+    RhobanUtils Eigen RhobanServer RobocupReferee RhobanTeamPlay
 )
 
 catkin_package(
     INCLUDE_DIRS .
-    CATKIN_DEPENDS RhobanUtils RobocupReferee
+    CATKIN_DEPENDS RhobanUtils RobocupReferee RhobanTeamPlay
 )
 
 #Camera options
@@ -18,6 +18,8 @@ option (USE_CAMERA "Use external camera" ON)
 set (CAMERA "1" CACHE STRING "Camera to use")
 
 include_directories(${catkin_INCLUDE_DIRS})
+include_directories(${RhobanTeamPlay_INCLUDE_DIRS})
+message("~~~~~~> ${RhobanTeamPlay_INCLUDE_DIRS}")
 
 #Enable C++11
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")

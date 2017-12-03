@@ -6,6 +6,7 @@
 #include <fstream>
 #include <thread>
 #include <chrono>
+#include <mutex>
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 #include <geometry/Point.hpp>
@@ -13,7 +14,7 @@
 #include <Constants.h>
 #include "timing/TimeStamp.hpp"
 #include "sockets/UDPBroadcast.hpp"
-#include "services/TeamPlayService.h"
+#include "teamplay/TeamPlay.h"
 #include "RefereeClient.hpp"
 #include "RichText.hpp"
 #include "log.h"

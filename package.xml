@@ -15,13 +15,13 @@
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>RhobanUtils</build_depend> <!-- rhobanproject/rhobanutils -->
   <build_depend>Eigen</build_depend> <!-- rhobandeps/eigen -->
-  <build_depend>RhobanServer</build_depend> <!-- rhobanproject/code -->
+  <build_depend>RhobanTeamPlay</build_depend> <!-- rhoban/teamplay -->
   <build_depend>RobocupReferee</build_depend> <!-- rhoban/robocupreferee -->
 
   <run_depend>RhobanUtils</run_depend>
   <run_depend>RobocupReferee</run_depend>
   <run_depend>Eigen</run_depend>
-  <run_depend>RhobanServer</run_depend>
+  <run_depend>RhobanTeamPlay</run_depend>
 
 </package>
 
