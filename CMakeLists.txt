@@ -18,8 +18,6 @@ option (USE_CAMERA "Use external camera" ON)
 set (CAMERA "1" CACHE STRING "Camera to use")
 
 include_directories(${catkin_INCLUDE_DIRS})
-include_directories(${RhobanTeamPlay_INCLUDE_DIRS})
-message("~~~~~~> ${RhobanTeamPlay_INCLUDE_DIRS}")
 
 #Enable C++11
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
