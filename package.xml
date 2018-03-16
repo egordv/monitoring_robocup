@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package>
-  <name>MonitoringRoboCup</name>
+  <name>monitoring_robocup</name>
   <version>0.0.0</version>
   <description>
     UDP viewer for RhobanServer
@@ -13,15 +13,15 @@
   <author email="qrouxel@labri.fr">Quentin Rouxel</author>
 
   <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>RhobanUtils</build_depend> <!-- rhobanproject/rhobanutils -->
-  <build_depend>Eigen</build_depend> <!-- rhobandeps/eigen -->
-  <build_depend>RhobanTeamPlay</build_depend> <!-- rhoban/teamplay -->
-  <build_depend>RobocupReferee</build_depend> <!-- rhoban/robocupreferee -->
+  <build_depend>rhoban_utils</build_depend> <!-- rhoban/utils -->
+  <build_depend>rhoban_geometry</build_depend> <!-- rhoban/geometry -->
+  <build_depend>rhoban_team_play</build_depend> <!-- rhoban/teamplay -->
+  <build_depend>robocup_referee</build_depend> <!-- rhoban/robocupreferee -->
 
-  <run_depend>RhobanUtils</run_depend>
-  <run_depend>RobocupReferee</run_depend>
-  <run_depend>Eigen</run_depend>
-  <run_depend>RhobanTeamPlay</run_depend>
+  <run_depend>rhoban_utils</run_depend>
+  <run_depend>rhoban_geometry</run_depend>
+  <run_depend>robocup_referee</run_depend>
+  <run_depend>rhoban_team_play</run_depend>
 
 </package>
 

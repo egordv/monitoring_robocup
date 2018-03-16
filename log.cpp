@@ -1,7 +1,10 @@
 #include <iostream>
 #include <regex>
 #include "log.h"
-#include "util.h"
+#include <rhoban_utils/io_tools.h>
+#include <rhoban_utils/util.h>
+
+using namespace rhoban_utils;
 
 static uint32_t hms(uint8_t h, uint8_t m, uint8_t s) {
     return h*3600 + m*60 +s;
@@ -14,7 +17,7 @@ Log::Log()
 void Log::load(std::string filename)
 {
     entries.clear();
-    auto data = file_get_contents(filename);
+    std::string data = file2string(filename);
     std::vector<std::string> lines;
     split(data, '\n', lines);
 

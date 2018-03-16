@@ -1,14 +1,14 @@
 cmake_minimum_required(VERSION 2.8)
-project(MonitoringRoboCup)
+project(monitoring_robocup)
 
 find_package(
     catkin REQUIRED COMPONENTS
-    RhobanUtils Eigen RhobanServer RobocupReferee RhobanTeamPlay
+    rhoban_utils rhoban_geometry robocup_referee rhoban_team_play
 )
 
 catkin_package(
     INCLUDE_DIRS .
-    CATKIN_DEPENDS RhobanUtils RobocupReferee RhobanTeamPlay
+    CATKIN_DEPENDS rhoban_utils rhoban_geometry robocup_referee rhoban_team_play
 )
 
 #Camera options

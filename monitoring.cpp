@@ -9,23 +9,25 @@
 #include <mutex>
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
-#include <geometry/Point.hpp>
-#include <Eigen/Dense>
-#include <Constants.h>
-#include "timing/TimeStamp.hpp"
-#include "sockets/UDPBroadcast.hpp"
-#include "teamplay/TeamPlay.h"
-#include "RefereeClient.hpp"
+#include <rhoban_geometry/point.h>
+#include <robocup_referee/constants.h>
+#include <rhoban_utils/sockets/udp_broadcast.h>
+#include <rhoban_utils/timing/time_stamp.h>
+#include <rhoban_utils/util.h>
+#include <rhoban_team_play/team_play.h>
+#include <robocup_referee/referee_client.h>
+
 #include "RichText.hpp"
 #include "log.h"
-#include "util.h"
+
 #ifdef USE_CAMERA
 #include <opencv2/opencv.hpp>
 
 using namespace cv;
 #endif
 
-using namespace Utils::Timing;
+using namespace rhoban_utils;
+using namespace rhoban_team_play;
 static bool stopped = false;
 
 int globalAlpha = 255;
@@ -64,12 +66,12 @@ void drawLine(
 void drawField(
     sf::RenderWindow& window)
 {
-    double fieldWidth = RhobanReferee::Constants::fieldLength/100.0;
-    double fieldHeight = RhobanReferee::Constants::fieldWidth/100;
-    double goalWidth = RhobanReferee::Constants::goalWidth/100.0;
+    double fieldWidth = robocup_referee::Constants::fieldLength/100.0;
+    double fieldHeight = robocup_referee::Constants::fieldWidth/100;
+    double goalWidth = robocup_referee::Constants::goalWidth/100.0;
     double goalDepth = 0.60;
-    double goalAreaDepth = RhobanReferee::Constants::goalAreaLength/100.0;
-    double goalAreaWidth = RhobanReferee::Constants::goalAreaWidth/100.0;
+    double goalAreaDepth = robocup_referee::Constants::goalAreaLength/100.0;
+    double goalAreaWidth = robocup_referee::Constants::goalAreaWidth/100.0;
 
     drawLine(window, sf::Vector2f(-fieldWidth/2, -fieldHeight/2), sf::Vector2f(fieldWidth/2, -fieldHeight/2));
     drawLine(window, sf::Vector2f(-fieldWidth/2, fieldHeight/2), sf::Vector2f(fieldWidth/2, fieldHeight/2));
@@ -271,13 +273,13 @@ void drawPlayer(
 }
 
 void drawDashedLine(sf::RenderWindow& window, 
-    ::Point pt1,
-    ::Point pt2,
+    rhoban_geometry::Point pt1,
+    rhoban_geometry::Point pt2,
     int id)
 {
     double delta = 0.1;
     while ((pt2-pt1).getLength() > delta) {
-        ::Point target = pt1 + (pt2-pt1).normalize(delta/2);
+        rhoban_geometry::Point target = pt1 + (pt2-pt1).normalize(delta/2);
         drawAnyLine(window, sf::Vector2f(pt1.x, pt1.y),
                 sf::Vector2f(target.x, target.y), id);
         pt1 = pt1 + (pt2-pt1).normalize(delta);
@@ -296,9 +298,9 @@ void drawTarget(sf::RenderWindow& window,
     double sizeX = 0.1;
     double sizeY = 0.02;
 
-    ::Point pt(pos.x, pos.y);
-    ::Point pt2(localTarget.x, localTarget.y);
-    ::Point pt3(target.x, target.y);
+    rhoban_geometry::Point pt(pos.x, pos.y);
+    rhoban_geometry::Point pt2(localTarget.x, localTarget.y);
+    rhoban_geometry::Point pt3(target.x, target.y);
 
     drawDashedLine(window, pt, pt2, id);
     globalAlpha = 100;
@@ -588,7 +590,7 @@ int main(int argc, char** argv)
     }
 
     //Initialize UDP communication in read only
-    Rhoban::UDPBroadcast broadcaster(port, -1);
+    UDPBroadcast broadcaster(port, -1);
     std::map<int, TeamPlayInfo> allInfo;
     std::thread *capture = NULL;
     std::thread *show = NULL;
