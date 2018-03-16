@@ -3,12 +3,12 @@ project(monitoring_robocup)
 
 find_package(
     catkin REQUIRED COMPONENTS
-    rhoban_utils rhoban_geometry robocup_referee rhoban_team_play
+    rhoban_utils rhoban_geometry robocup_referee rhoban_team_play sfml
 )
 
 catkin_package(
     INCLUDE_DIRS .
-    CATKIN_DEPENDS rhoban_utils rhoban_geometry robocup_referee rhoban_team_play
+    CATKIN_DEPENDS rhoban_utils rhoban_geometry robocup_referee rhoban_team_play sfml
 )
 
 #Camera options
@@ -38,10 +38,6 @@ if (USE_CAMERA)
     add_definitions (-DCAMERA=${CAMERA})
 endif ()
 
-#Include SFML (graphic library)
-set(SFML_DIRECTORY "SFML" CACHE STRING "SFML lib directory")
-include_directories(${SFML_DIRECTORY}/include)
-link_directories(${SFML_DIRECTORY}/lib)
 add_executable(MonitoringRoboCup
     RichText.cpp
     monitoring.cpp
@@ -50,10 +46,12 @@ add_executable(MonitoringRoboCup
 target_link_libraries(MonitoringRoboCup
     ${LIBRARIES}
     pthread
-    sfml-graphics
-    sfml-window
-    sfml-system
-    GL
-    GLU
 )
 
+set(BINARY_FILES
+  font.ttf
+  RhobanFootballClub.png)
+
+file(COPY ${BINARY_FILES}
+  DESTINATION ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION}/
+  )

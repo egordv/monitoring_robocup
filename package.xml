@@ -17,11 +17,13 @@
   <build_depend>rhoban_geometry</build_depend> <!-- rhoban/geometry -->
   <build_depend>rhoban_team_play</build_depend> <!-- rhoban/teamplay -->
   <build_depend>robocup_referee</build_depend> <!-- rhoban/robocupreferee -->
+  <build_depend>sfml</build_depend> <!-- rhobandeps/sfml -->
 
   <run_depend>rhoban_utils</run_depend>
   <run_depend>rhoban_geometry</run_depend>
   <run_depend>robocup_referee</run_depend>
   <run_depend>rhoban_team_play</run_depend>
+  <run_depend>sfml</run_depend>
 
 </package>
 

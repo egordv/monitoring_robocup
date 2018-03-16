@@ -563,6 +563,12 @@ void showThread()
 
 int main(int argc, char** argv)
 {
+  // Loading font
+  std::string binary_path = rhoban_utils::getDirName(argv[0]);
+  std::string font_path = binary_path + "font.ttf";
+  std::string img_path = binary_path + "RhobanFootballClub.png";
+  std::cout << "Loading from : " << binary_path << std::endl;
+
     //UDP port
     int port = 27645;
     //Parse arguments for log replays
@@ -644,12 +650,12 @@ int main(int argc, char** argv)
     settings.antialiasingLevel = 8;
     sf::RenderWindow window(sf::VideoMode(width, height), "MonitoringViewer", sf::Style::Default, settings);
     //Load font file
-    if (!font.loadFromFile("font.ttf")) {
+    if (!font.loadFromFile(font_path)) {
         throw std::logic_error("MonitoringViewer fail to load font");
     }
     //Load logo file
     sf::Texture logo;
-    if(!logo.loadFromFile("RhobanFootballClub.png")) {
+    if(!logo.loadFromFile(img_path)) {
         throw std::logic_error("MonitoringViewer fail to load logo");
     }
     logo.setSmooth(true);
