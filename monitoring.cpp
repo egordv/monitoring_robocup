@@ -907,7 +907,7 @@ int main(int argc, char** argv)
                 text << "ID " << ss.str() << " - ";
             }
             if (id == 1) text << "Olive";
-            if (id == 2) text << "Mowgly";
+            if (id == 2) text << "Nova";
             if (id == 3) text << "Arya";
             if (id == 4) text << "Tom";
             if (id == 5) text << "Chewbacca";
