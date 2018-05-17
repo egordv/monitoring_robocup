@@ -66,12 +66,12 @@ void drawLine(
 void drawField(
     sf::RenderWindow& window)
 {
-    double fieldWidth = robocup_referee::Constants::fieldLength/100.0;
-    double fieldHeight = robocup_referee::Constants::fieldWidth/100;
-    double goalWidth = robocup_referee::Constants::goalWidth/100.0;
-    double goalDepth = 0.60;
-    double goalAreaDepth = robocup_referee::Constants::goalAreaLength/100.0;
-    double goalAreaWidth = robocup_referee::Constants::goalAreaWidth/100.0;
+    double fieldWidth = robocup_referee::Constants::field.fieldLength;
+    double fieldHeight = robocup_referee::Constants::field.fieldWidth;
+    double goalWidth = robocup_referee::Constants::field.goalWidth;
+    double goalDepth = robocup_referee::Constants::field.goalDepth;
+    double goalAreaDepth = robocup_referee::Constants::field.goalAreaLength;
+    double goalAreaWidth = robocup_referee::Constants::field.goalAreaWidth;
 
     drawLine(window, sf::Vector2f(-fieldWidth/2, -fieldHeight/2), sf::Vector2f(fieldWidth/2, -fieldHeight/2));
     drawLine(window, sf::Vector2f(-fieldWidth/2, fieldHeight/2), sf::Vector2f(fieldWidth/2, fieldHeight/2));
