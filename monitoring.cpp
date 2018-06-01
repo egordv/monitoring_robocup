@@ -331,169 +331,42 @@ void drawTarget(sf::RenderWindow& window,
  */
 bool loadReplayLine(std::ifstream& replay, 
     std::map<int, TeamPlayInfo>& allInfo,
+    CaptainInfo &captainInfo,
     double* replayTime = nullptr,
     size_t* framePtr = nullptr)
 {
-    while (replay.peek() == ' ' || replay.peek() == '\n') {
-        replay.ignore();
-    }
     //Check file end
     if (!replay.good() || replay.peek() == EOF) {
         return false;
     }
-    //Load one replay line
-    double ts;
-    size_t frame;
-    int size;
-    replay >> ts;
-    replay >> frame;
-    replay >> size;
-    for (size_t i=0;i<(size_t)size;i++) {
-        int id;
-        int state;
-        int priority;
-        double ballX;
-        double ballY;
-        double ballQ;
-        double fieldX;
-        double fieldY;
-        double fieldYaw;
-        double fieldQ;
-        double fieldConsistency;
-        double timestamp;
-        double targetX;
-        double targetY;
-        double localTargetX;
-        double localTargetY;
-        double ballTargetX;
-        double ballTargetY;
-        bool placing;
-        int hour, min, sec;
-        std::string stateReferee = "";
-        std::string stateRobocup = "";
-        std::string statePlaying = "";
-        std::string stateSearch = "";
-        std::string hardwareWarnings = "";
-        replay >> id;
-        replay >> state;
-        replay >> priority;
-        replay >> ballX;
-        replay >> ballY;
-        replay >> ballQ;
-        replay >> fieldX;
-        replay >> fieldY;
-        replay >> fieldYaw;
-        replay >> fieldQ;
-        replay >> fieldConsistency;
-        replay >> timestamp;
-        replay >> targetX;
-        replay >> targetY;
-        replay >> localTargetX;
-        replay >> localTargetY;
-        replay >> ballTargetX;
-        replay >> ballTargetY;
-        replay >> placing;
-        replay >> hour;
-        replay >> min;
-        replay >> sec;
-        while (true) {
-            replay >> std::noskipws;
-            char c;
-            replay >> c;
-            if (c == '$') break;
-            if (c == EOF || !replay.good()) return false;
-            stateReferee += c;
+    
+    // Peeking the next line
+    std::string line;
+    std::getline(replay, line);
+    
+    Json::Reader reader;
+    Json::Value json;
+    
+    // Trying to parse
+    if (reader.parse(line, json)) {
+        if (json.isMember("ts") && json.isMember("frame")) {
+            if (replayTime != nullptr) {
+                *replayTime = json["ts"].asFloat();
+            }
+            if (framePtr != nullptr) {
+                *framePtr = json["frame"].asInt();
+            }
+            
+            for (auto &infoJson : json["info"]) {
+                TeamPlayInfo info;
+                teamPlayfromJson(info, infoJson);
+                allInfo[info.id] = info;
+            }
+            
+            captainFromJson(captainInfo, json["captain"]);
         }
-        replay >> std::skipws;
-        replay.ignore();
-        while (replay.peek() == ' ' && replay.peek() != EOF) {
-            replay.ignore();
-        }
-        while (true) {
-            char c;
-            replay >> c;
-            if (c == '$') break;
-            if (c == EOF || !replay.good()) return false;
-            stateRobocup += c;
-        }
-        replay.ignore();
-        while (replay.peek() == ' ' && replay.peek() != EOF) {
-            replay.ignore();
-        }
-        while (true) {
-            char c;
-            replay >> c;
-            if (c == '$') break;
-            if (c == EOF || !replay.good()) return false;
-            statePlaying += c;
-        }
-        replay.ignore();
-        while (replay.peek() == ' ' && replay.peek() != EOF) {
-            replay.ignore();
-        }
-        while (true) {
-            char c;
-            replay >> c;
-            if (c == '$') break;
-            if (c == EOF || !replay.good()) return false;
-            stateSearch += c;
-        }
-        replay.ignore();
-        while (replay.peek() == ' ' && replay.peek() != EOF) {
-            replay.ignore();
-        }
-        while (true) {
-            replay >> std::noskipws;
-            char c;
-            replay >> c;
-            if (c == '$') break;
-            if (c == EOF || !replay.good()) return false;
-            hardwareWarnings += c;
-        }
-        replay >> std::skipws;
-        replay.ignore();
-        while (replay.peek() == ' ' && replay.peek() != EOF) {
-            replay.ignore();
-        }
-        TeamPlayInfo info;
-        info.id = id;
-        info.state = (TeamPlayState)state;
-        info.priority = (TeamPlayPriority)priority;
-        info.ballX = ballX;
-        info.ballY = ballY;
-        info.ballQ = ballQ;
-        info.fieldX = fieldX;
-        info.fieldY = fieldY;
-        info.fieldYaw = fieldYaw;
-        info.fieldQ = fieldQ;
-        info.fieldConsistency = fieldConsistency;
-        info.timestamp = timestamp;
-        info.targetX = targetX;
-        info.targetY = targetY;
-        info.localTargetX = localTargetX;
-        info.localTargetY = localTargetY;
-        info.ballTargetX = ballTargetX;
-        info.ballTargetY = ballTargetY;
-        info.placing = placing;
-        info.hour = hour;
-        info.min = min;
-        info.sec = sec;
-        strncpy(info.stateReferee, stateReferee.c_str(), sizeof(info.stateReferee));
-        info.stateReferee[sizeof(info.stateReferee)-1] = '\0';
-        strcpy(info.stateRobocup, stateRobocup.c_str());
-        strcpy(info.statePlaying, statePlaying.c_str());
-        strcpy(info.stateSearch, stateSearch.c_str());
-        strncpy(info.hardwareWarnings, hardwareWarnings.c_str(), sizeof(info.hardwareWarnings));
-        info.hardwareWarnings[sizeof(info.hardwareWarnings)-1] = '\0';
-
-        allInfo[id] = info;
     }
-    if (replayTime != nullptr) {
-        *replayTime = ts;
-    }
-    if (framePtr != nullptr) {
-        *framePtr = frame;
-    }
+   
     return true;
 }
 
@@ -570,7 +443,7 @@ int main(int argc, char** argv)
   std::cout << "Loading from : " << binary_path << std::endl;
 
     //UDP port
-    int port = 27645;
+    int port = 28645;
     //Parse arguments for log replays
     bool isReplay = false;
     double replayTime=0, replayTargetTime=0;
@@ -597,12 +470,15 @@ int main(int argc, char** argv)
 
     //Initialize UDP communication in read only
     UDPBroadcast broadcaster(port, -1);
+    UDPBroadcast captainBroadcaster(28646, -1);
     std::map<int, TeamPlayInfo> allInfo;
+    CaptainInfo captainInfo;
     std::thread *capture = NULL;
     std::thread *show = NULL;
 
     //Load replay
     std::vector<std::map<int, TeamPlayInfo>> replayContainerInfo;
+    std::vector<CaptainInfo> replayContainerCaptain;
     std::vector<size_t> replayContainerFrame;
     std::vector<double> replayContainerTime;
     if (isReplay) {
@@ -610,10 +486,11 @@ int main(int argc, char** argv)
         replayFile.open(replayFilename);
         while (true) {
             std::map<int, TeamPlayInfo> tmpInfo;
+            CaptainInfo tmpCaptain;
             double tmpTime;
             size_t tmpFrame;
             bool isOk = loadReplayLine(
-                replayFile, tmpInfo, &tmpTime, &tmpFrame);
+                replayFile, tmpInfo, tmpCaptain, &tmpTime, &tmpFrame);
             //End of replay
             if (!isOk) {
                 break;
@@ -621,6 +498,7 @@ int main(int argc, char** argv)
                 replayContainerInfo.push_back(tmpInfo);
                 replayContainerTime.push_back(tmpTime);
                 replayContainerFrame.push_back(tmpFrame);
+                replayContainerCaptain.push_back(tmpCaptain);
             }
         }
         replayFile.close();
@@ -700,6 +578,20 @@ int main(int argc, char** argv)
                     << std::setprecision(10) << info.timestamp << std::endl;
                 isUpdate = true;
             }
+            
+            size_t captainLen = sizeof(captainInfo);
+            while (captainBroadcaster.checkMessage((unsigned char*)&captainInfo, captainLen)) {
+                if (captainLen != sizeof(captainInfo)) {
+                    std::cout << "ERROR: TeamPlayService: invalid captain message of size=" 
+                        << captainLen << " instead of " << sizeof(captainInfo) << std::endl;
+                    continue;
+                }
+                info.timestamp = TimeStamp::now().getTimeMS();
+                std::cout << "Receiving captain data from id=" 
+                    << captainInfo.id << " ts=" 
+                    << std::setprecision(10) << info.timestamp << std::endl;
+                isUpdate = true;
+            }
            
 #ifdef USE_CAMERA
             frameMutex.lock();
@@ -730,12 +622,14 @@ int main(int argc, char** argv)
 
                 while (replayTime < replayTargetTime && replayIndex < replayContainerTime.size()-1) {
                     allInfo = replayContainerInfo[replayIndex];
+                    captainInfo = replayContainerCaptain[replayIndex];
                     replayTime = replayContainerTime[replayIndex];
                     currentFrame = replayContainerFrame[replayIndex];
                     replayIndex++;
                 }
                 while (replayTime > replayTargetTime && replayIndex > 0) {
                     allInfo = replayContainerInfo[replayIndex];
+                    captainInfo = replayContainerCaptain[replayIndex];
                     replayTime = replayContainerTime[replayIndex];
                     currentFrame = replayContainerFrame[replayIndex];
                     replayIndex--;
@@ -785,6 +679,7 @@ int main(int argc, char** argv)
                 isInverted = -isInverted;
             }
         } 
+        
         //Replay user control
         if (isReplay) {
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::P)) {
@@ -809,10 +704,13 @@ int main(int argc, char** argv)
         window.draw(sprite,sf::RenderStates::Default);
         //Draw RoboCup field
         drawField(window);
+        Json::Value json(Json::objectValue);
         //Logging
         if (!isReplay && isUpdate) {
-            log << std::setprecision(10) << TimeStamp::now().getTimeMS() << " " << currentFrame << " ";
-            log << allInfo.size() << " ";
+            json["ts"] = TimeStamp::now().getTimeMS();
+            json["frame"] = (unsigned int)currentFrame;
+            json["info"] = Json::arrayValue;
+            json["captain"] = captainToJson(captainInfo);
         }
         size_t index = 0;
         //Draw players info
@@ -822,34 +720,7 @@ int main(int argc, char** argv)
             const TeamPlayInfo& info = it.second;
             //Log data
             if (!isReplay && isUpdate) {
-                log 
-                    << id << " " 
-                    << info.state << " "
-                    << info.priority << " "
-                    << std::setprecision(10) << info.ballX << " "
-                    << std::setprecision(10) << info.ballY << " "
-                    << std::setprecision(10) << info.ballQ << " "
-                    << std::setprecision(10) << info.fieldX << " "
-                    << std::setprecision(10) << info.fieldY << " "
-                    << std::setprecision(10) << info.fieldYaw << " "
-                    << std::setprecision(10) << info.fieldQ << " "
-                    << std::setprecision(10) << info.fieldConsistency << " "
-                    << std::setprecision(10) << info.timestamp << " "
-                    << std::setprecision(10) << info.targetX << " "
-                    << std::setprecision(10) << info.targetY << " "
-                    << std::setprecision(10) << info.localTargetX << " "
-                    << std::setprecision(10) << info.localTargetY << " "
-                    << std::setprecision(10) << info.ballTargetX << " "
-                    << std::setprecision(10) << info.ballTargetY << " "
-                    << std::setprecision(10) << info.placing << " "
-                    << (int)info.hour << " "
-                    << (int)info.min << " "
-                    << (int)info.sec << " "
-                    << info.stateReferee << "$ "
-                    << info.stateRobocup << "$ "
-                    << info.statePlaying << "$ "
-                    << info.stateSearch << "$ "
-                    << info.hardwareWarnings << "$ " << std::endl;
+                json["info"].append(teamPlayToJson(info));
             }
             //Retrieve robot
             double yaw = info.fieldYaw;
@@ -933,28 +804,11 @@ int main(int argc, char** argv)
             if (info.state == BallHandling) {
                 text << "BallHandling";
             }
-            if (info.state == PlacingA) {
-                text << "Placing (A)";
+            if (info.state == GoalKeeping) {
+                text << "GoalKeeping";
             }
-            if (info.state == PlacingB) {
-                text << "Placing (B)";
-            }
-            if (info.state == PlacingC) {
-                text << "Placing (C)";
-            }
-            if (info.state == PlacingD) {
-                text << "Placing (D)";
-            }
-            text << "\n";
-            text << "Priority: ";
-            if (info.priority == LowPriority) {
-                text << "Low";
-            }
-            if (info.priority == NormalPriority) {
-                text << "Normal";
-            }
-            if (info.priority == HighPriority) {
-                text << "Hight";
+            if (info.state == Unknown) {
+                text << "Unknown";
             }
             text << "\n";
             text << "Referee: " << info.stateReferee << "\n";
@@ -1012,6 +866,11 @@ int main(int argc, char** argv)
                     ssTime.str(),  
                     sf::Vector2f(0.0, 3.5), 0);
             }
+        }
+        
+        if (!isReplay && isUpdate) {
+            Json::FastWriter writer;
+            log << writer.write(json);
         }
 
         window.display();
