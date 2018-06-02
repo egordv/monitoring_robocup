@@ -443,7 +443,8 @@ int main(int argc, char** argv)
   std::cout << "Loading from : " << binary_path << std::endl;
 
     //UDP port
-    int port = 28645;
+    int port = TEAM_PLAY_PORT;
+    int captainPort = CAPTAIN_PORT;
     //Parse arguments for log replays
     bool isReplay = false;
     double replayTime=0, replayTargetTime=0;
@@ -461,6 +462,7 @@ int main(int argc, char** argv)
             outLog.load(std::string(argv[3]));
         }
         port = -1;
+        captainPort = -1;
         isReplay = true;
         std::cout << "Loading replay from " << replayFilename << std::endl;
     } else {
@@ -470,7 +472,7 @@ int main(int argc, char** argv)
 
     //Initialize UDP communication in read only
     UDPBroadcast broadcaster(port, -1);
-    UDPBroadcast captainBroadcaster(28646, -1);
+    UDPBroadcast captainBroadcaster(captainPort, -1);
     std::map<int, TeamPlayInfo> allInfo;
     CaptainInfo captainInfo;
     std::thread *capture = NULL;
