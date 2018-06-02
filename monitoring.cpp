@@ -286,6 +286,20 @@ void drawDashedLine(sf::RenderWindow& window,
     }
 }
 
+void drawObstacle(sf::RenderWindow& window, 
+    const sf::Vector2f& pos,
+    double radius,
+    int id)
+{
+    globalAlpha = 60;
+    sf::CircleShape circle(radius);
+    circle.setOrigin(radius, radius);
+    circle.move(pos.x, -pos.y);
+    circle.setFillColor(getColor(id));
+    window.draw(circle);
+    globalAlpha = 255;
+}
+
 /**
  * Drawing target for placing
  */
@@ -768,6 +782,13 @@ int main(int argc, char** argv)
                         id
                         );
 
+            }
+            // Draw obstacles
+            for (int k=0; k<info.nbObstacles; k++) {
+                drawObstacle(window, 
+                    sf::Vector2f(info.obstacles[k][0]*isInverted, info.obstacles[k][1]*isInverted),
+                    info.obstaclesRadius,
+                    id);
             }
             //Print information
             sfe::RichText text(font);
