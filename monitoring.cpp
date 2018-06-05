@@ -767,8 +767,7 @@ int main(int argc, char** argv)
 
                 if (info.state == BallHandling || info.state == Playing) {
                     if (std::string(info.statePlaying) == "approach" ||
-                            std::string(info.statePlaying) == "walkBall" ||
-                            std::string(info.statePlaying) == "letPlay") {
+                            std::string(info.statePlaying) == "walkBall") {
                         sf::Vector2f ballTarget(info.ballTargetX*isInverted, info.ballTargetY*isInverted);
                         drawBallArrow(window, ballPos, ballTarget, id);
                     }
@@ -815,6 +814,10 @@ int main(int argc, char** argv)
             }
             */
 
+            if (captainInfo.id == info.id) {
+                text << sf::Color(255, 175, 0) << " (Captain)";
+                text << getColor(info.id);
+            }
             text << "\n";
             text << sf::Text::Regular;
             text << "State: ";
