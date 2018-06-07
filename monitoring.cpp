@@ -898,6 +898,7 @@ int main(int argc, char** argv)
             Json::FastWriter writer;
             log << writer.write(json);
         }
+        log.flush();
 
         window.display();
     }
