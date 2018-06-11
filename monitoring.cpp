@@ -773,6 +773,14 @@ int main(int argc, char** argv)
                     }
                 }
             }
+            
+            // Draw consensus ball
+            if (captainInfo.id > 0) {
+                auto ball = captainInfo.common_ball;
+                sf::Vector2f ballPos(ball.x, ball.y);
+                drawBall(window, ballPos, 0);
+            }
+            
             // Draw placing target
             if (info.placing) {
                 drawTarget(window, sf::Vector2f(robotPos.x, robotPos.y),
