@@ -474,6 +474,8 @@ int main(int argc, char** argv)
         if (argc >= 4) {
             logRobot = atoi(argv[2]);
             outLog.load(std::string(argv[3]));
+            std::cout << "Loading out.log (" << outLog.getEntries() << " entries) for robot #" << (int)logRobot << " from " << argv[3] << std::endl;
+            
         }
         port = -1;
         captainPort = -1;
@@ -817,14 +819,14 @@ int main(int argc, char** argv)
             if (id == 4) text << "Tom";
             if (id == 5) text << "Chewbacca";
             if (id == 6) text << "Django";
+    
 
-            /*
             {
                 std::stringstream ss;
                 ss << " [" << (int)info.hour << ":" << (int)info.min << ":" << (int)info.sec << "]";
                 text << ss.str();
             }
-            */
+        
 
             if (captainInfo.id == info.id) {
                 text << sf::Color(255, 175, 0) << " (Captain)";

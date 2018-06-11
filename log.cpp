@@ -14,6 +14,11 @@ Log::Log()
 {
 }
 
+int Log::getEntries()
+{
+    return entries.size();
+}
+
 void Log::load(std::string filename)
 {
     entries.clear();
@@ -21,7 +26,7 @@ void Log::load(std::string filename)
     std::vector<std::string> lines;
     split(data, '\n', lines);
 
-    std::regex regex("^(.*)\\[(\\d+):(\\d+):(\\d+)\\] (.+)$");
+    std::regex regex("^(.*)\\[(\\d+):(\\d+):(\\d+):(\\d+)\\] (.+)$");
     for (auto &line : lines) {
         std::cmatch cm;
         if (std::regex_match(line.c_str(), cm, regex)) {
