@@ -777,7 +777,7 @@ int main(int argc, char** argv)
             // Draw consensus ball
             if (captainInfo.id > 0) {
                 auto ball = captainInfo.common_ball;
-                sf::Vector2f ballPos(ball.x, ball.y);
+                sf::Vector2f ballPos(ball.x*isInverted, ball.y*isInverted);
                 drawBall(window, ballPos, 0);
                 
                 std::stringstream ssBall;
