@@ -779,6 +779,10 @@ int main(int argc, char** argv)
                 auto ball = captainInfo.common_ball;
                 sf::Vector2f ballPos(ball.x, ball.y);
                 drawBall(window, ballPos, 0);
+                
+                std::stringstream ssBall;
+                ssBall << captainInfo.common_ball.nbRobots;
+                drawText(window, ssBall.str(), ballPos + sf::Vector2f(0.0, 0.35), 0);
             }
             
             // Draw placing target
