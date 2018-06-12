@@ -29,7 +29,6 @@ set(CMAKE_CXX_FLAGS
 set (LIBRARIES ${catkin_LIBRARIES})
 
 if (USE_CAMERA)
-    set (OpenCV_DIR "/home/gregwar/opencv/build")
     find_package(OpenCV REQUIRED)
     include_directories(${OpenCV_DIR}/include)
     include_directories(${OpenCV_DIR}/include/opencv2)

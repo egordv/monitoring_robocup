@@ -755,7 +755,20 @@ int main(int argc, char** argv)
                 sin(yaw)*info.ballX + cos(yaw)*info.ballY);
             ballPos += robotPos;
             //Draw info
-            drawPlayer(window, sf::Vector2f(robotPos.x, robotPos.y), yaw*180.0/M_PI, id);
+            double age;
+            if (!isReplay) {
+                age = (TimeStamp::now().getTimeMS() - info.timestamp)/1000.0;
+            } else {
+                age = (replayTime - info.timestamp)/1000.0;
+            }
+            if (info.isPenalized() || age > 5.0) {
+              double x = isInverted * (-robocup_referee::Constants::field.fieldLength / 2);
+              x += isInverted * 0.45 * (info.id - 1);
+              double y = isInverted * (-robocup_referee::Constants::field.fieldWidth / 2 - 0.3);
+              drawPlayer(window, sf::Vector2f(x, y), isInverted * 90.0, id);
+            } else { 
+              drawPlayer(window, sf::Vector2f(robotPos.x, robotPos.y), yaw*180.0/M_PI, id);
+            }
             if (info.ballQ > 0.0) {
                 if (info.state != BallHandling) {
                     globalAlpha = 100;
@@ -864,12 +877,6 @@ int main(int argc, char** argv)
                 ss << "FieldConsistency: " << std::fixed << std::setprecision(2) 
                     << info.fieldConsistency << std::endl;
                 text << ss.str();
-            }
-            double age;
-            if (!isReplay) {
-                age = (TimeStamp::now().getTimeMS() - info.timestamp)/1000.0;
-            } else {
-                age = (replayTime - info.timestamp)/1000.0;
             }
             
             if (info.hardwareWarnings[0] != '\0') {
