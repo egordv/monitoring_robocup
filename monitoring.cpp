@@ -568,6 +568,13 @@ int main(int argc, char** argv)
     std::string logFilename = "monitoring.log";
     std::ofstream log;
     if (!isReplay) {
+        std::ifstream ifs(logFilename);
+        if (ifs.good()) {
+            std::cerr << "File '" << logFilename
+                      << "' already exists! Erase it before if you want to start a new log."
+                      << std::endl;
+            exit(EXIT_FAILURE);
+        }
         std::cout << "Writing log to " << logFilename << std::endl;
         log.open(logFilename);
     } else {
