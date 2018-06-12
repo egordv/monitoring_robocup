@@ -883,6 +883,8 @@ int main(int argc, char** argv)
                     << info.fieldQ << std::endl;
                 ss << "FieldConsistency: " << std::fixed << std::setprecision(2) 
                     << info.fieldConsistency << std::endl;
+                ss << "TimeSinceLastKick: " << std::fixed << std::setprecision(2) 
+                    << info.timeSinceLastKick << std::endl;
                 text << ss.str();
             }
             
