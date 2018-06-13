@@ -289,9 +289,10 @@ void drawDashedLine(sf::RenderWindow& window,
 void drawObstacle(sf::RenderWindow& window, 
     const sf::Vector2f& pos,
     double radius,
-    int id)
+    int id,
+    int alpha)
 {
-    globalAlpha = 60;
+    globalAlpha = alpha;
     sf::CircleShape circle(radius);
     circle.setOrigin(radius, radius);
     circle.move(pos.x, -pos.y);
@@ -816,13 +817,6 @@ int main(int argc, char** argv)
                         );
 
             }
-            // Draw obstacles
-            for (int k=0; k<info.nbObstacles; k++) {
-                drawObstacle(window, 
-                    sf::Vector2f(info.obstacles[k][0]*isInverted, info.obstacles[k][1]*isInverted),
-                    info.obstaclesRadius,
-                    id);
-            }
             //Print information
             sfe::RichText text(font);
             text << getColor(id);
@@ -922,6 +916,21 @@ int main(int argc, char** argv)
                     ssTime.str(),  
                     sf::Vector2f(0.0, 3.5), 0);
             }
+        }
+        
+        // Draw obstacles
+        for (int k=0; k<captainInfo.nb_opponents; k++) {
+            auto &opponent = captainInfo.common_opponents[k];
+            int alpha = 60 + opponent.consensusStrength*  50;
+            if (alpha > 255) {
+                alpha = 255;
+            }
+            
+            drawObstacle(window, 
+                sf::Vector2f(opponent.x*isInverted, opponent.y*isInverted),
+                0.6,
+                0,
+                alpha);
         }
         
         if (!isReplay && isUpdate) {
