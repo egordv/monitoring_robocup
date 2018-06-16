@@ -831,7 +831,7 @@ int main(int argc, char** argv)
             if (id == 2) text << "Nova";
             if (id == 3) text << "Arya";
             if (id == 4) text << "Tom";
-            if (id == 5) text << "Chewbacca";
+            if (id == 5) text << "Rush";
             if (id == 6) text << "Django";
     
 
