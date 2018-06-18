@@ -118,10 +118,10 @@ sf::Color getColor(int id)
         color = sf::Color(220, 220, 0, globalAlpha);
     }
     if (id == 5) {
-        color = sf::Color(0, 96, 255, globalAlpha);
+        color = sf::Color(255, 132, 0, globalAlpha);
     }
     if (id == 6) {
-        color = sf::Color(255, 132, 0, globalAlpha);
+        color = sf::Color(72, 140, 224, globalAlpha);
     }
     return color;
 }
@@ -138,7 +138,7 @@ void drawText(
 {
     double size = 0.008;
     text.setFont(font); 
-    text.setCharacterSize(20);
+    text.setCharacterSize(18);
     text.move(pos.x, -pos.y);
     text.scale(size, size);
     text.move(0.0, -size*20.0);
@@ -899,13 +899,13 @@ int main(int argc, char** argv)
             if (index == 1) {
                 drawText(window, text, sf::Vector2f(-6.5, 3.0), id);
             } else if (index == 2) {
-                drawText(window, text, sf::Vector2f(-6.5, -1.2), id);
+                drawText(window, text, sf::Vector2f(-6.5, 0.75), id);
             } else if (index == 3) {
-                drawText(window, text, sf::Vector2f(4.75, 3.0), id);
+                drawText(window, text, sf::Vector2f(-6.5, -1.5), id);
             } else if (index == 4) {
-                drawText(window, text, sf::Vector2f(4.75, -1.2), id);
+                drawText(window, text, sf::Vector2f(4.75, 3.0), id);
             } else {
-                drawText(window, text, sf::Vector2f(-6.5, 5.2 - id*1.8), id);
+                drawText(window, text, sf::Vector2f(4.75, 0.75), id);
             }
             if (isReplay) {
                 std::stringstream ssTime;
