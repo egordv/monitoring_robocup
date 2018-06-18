@@ -29,6 +29,8 @@ using namespace cv;
 using namespace rhoban_utils;
 using namespace rhoban_team_play;
 static bool stopped = false;
+std::string refereeIp = "";
+bool badRefereeIp = false;
 
 int globalAlpha = 255;
 sf::Font font;
@@ -122,6 +124,9 @@ sf::Color getColor(int id)
     }
     if (id == 6) {
         color = sf::Color(72, 140, 224, globalAlpha);
+    }
+    if (id == 10) {
+        color = sf::Color(255, 0, 0, globalAlpha);
     }
     return color;
 }
@@ -490,6 +495,7 @@ int main(int argc, char** argv)
     //Initialize UDP communication in read only
     UDPBroadcast broadcaster(port, -1);
     UDPBroadcast captainBroadcaster(captainPort, -1);
+    UDPBroadcast refereeBroadcaster(3838, -1);
     std::map<int, TeamPlayInfo> allInfo;
     CaptainInfo captainInfo;
     std::thread *capture = NULL;
@@ -618,6 +624,23 @@ int main(int argc, char** argv)
                     << std::setprecision(10) << info.timestamp << std::endl;
                 isUpdate = true;
             }
+            
+            size_t n = 1024;
+            uint8_t buffer[n];
+            std::string ip;
+            while (refereeBroadcaster.checkMessage(buffer, n, &ip)) {
+                if (n > 500) {
+                    badRefereeIp = (ip != "192.168.1.100");
+                    std::stringstream ss;
+                    if (badRefereeIp) {
+                        ss << "Bad referee IP: ";
+                    } else {
+                        ss << "Referee IP: ";
+                    }
+                    ss << ip;
+                    refereeIp = ss.str();
+                }
+            }
            
 #ifdef USE_CAMERA
             frameMutex.lock();
@@ -730,6 +753,12 @@ int main(int argc, char** argv)
         window.draw(sprite,sf::RenderStates::Default);
         //Draw RoboCup field
         drawField(window);
+        
+        // Draw referee IP
+        if (refereeIp != "") {
+            drawText(window, refereeIp, sf::Vector2f(-0.75, 3.5), badRefereeIp ? 10 : -1);
+        }
+        
         Json::Value json(Json::objectValue);
         //Logging
         if (!isReplay && isUpdate) {
