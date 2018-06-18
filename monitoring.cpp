@@ -756,7 +756,7 @@ int main(int argc, char** argv)
         
         // Draw referee IP
         if (refereeIp != "") {
-            drawText(window, refereeIp, sf::Vector2f(-0.75, 3.5), badRefereeIp ? 10 : -1);
+            drawText(window, refereeIp, sf::Vector2f(-0.75, 3.5), badRefereeIp ? 10 : 2);
         }
         
         Json::Value json(Json::objectValue);
